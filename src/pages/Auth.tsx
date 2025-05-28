@@ -34,7 +34,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background p-6">
+    <div className="h-screen flex bg-background p-6">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden rounded-3xl">
         <img
