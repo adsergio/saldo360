@@ -56,11 +56,13 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center justify-center">
           {isCollapsed ? (
-            <img 
-              src="/lovable-uploads/a5a40de7-4096-4a32-af0c-76fe03ec72f7.png"
-              alt="FinanceFlow Icon" 
-              className="h-8 w-8"
-            />
+            <div className="min-w-8">
+              <img 
+                src="/lovable-uploads/a5a40de7-4096-4a32-af0c-76fe03ec72f7.png"
+                alt="FinanceFlow Icon" 
+                className="h-8 w-8"
+              />
+            </div>
           ) : (
             <img 
               src={getLogoSrc()} 
