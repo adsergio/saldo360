@@ -9,7 +9,7 @@ import { useTheme } from '@/hooks/useTheme'
 type AuthMode = 'login' | 'register' | 'forgot'
 
 const authImages = {
-  register: '/lovable-uploads/4e61242f-e04e-4263-906b-8a80195f4163.png',
+  register: '/lovable-uploads/3e6efeb8-4963-4a6b-9548-e1ce00ab987b.png',
   login: '/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png',
   forgot: '/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png'
 }

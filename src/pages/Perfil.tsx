@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
-import { Camera, User } from 'lucide-react'
+import { Camera, User, Trash2 } from 'lucide-react'
 import { validateWhatsAppNumber } from '@/utils/whatsapp'
 
 interface Profile {
@@ -19,7 +20,7 @@ interface Profile {
 }
 
 export default function Perfil() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<Profile>({
     nome: '',
     phone: '',
@@ -29,6 +30,9 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [confirmEmail, setConfirmEmail] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -232,6 +236,75 @@ export default function Perfil() {
     setCurrentCountryCode(country_code)
   }
 
+  const handleDeleteAccount = async () => {
+    if (confirmEmail !== user?.email) {
+      toast({
+        title: "Erro",
+        description: "O email de confirmação não confere",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setDeleting(true)
+
+    try {
+      // First delete all user data from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user?.id)
+
+      if (profileError) throw profileError
+
+      // Delete all user transactions
+      const { error: transacoesError } = await supabase
+        .from('transacoes')
+        .delete()
+        .eq('userId', user?.id)
+
+      if (transacoesError) throw transacoesError
+
+      // Delete all user reminders
+      const { error: lembretesError } = await supabase
+        .from('lembretes')
+        .delete()
+        .eq('userId', user?.id)
+
+      if (lembretesError) throw lembretesError
+
+      // Finally delete the user account
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(user?.id!)
+
+      if (deleteError) {
+        // If admin delete fails, try regular account deletion
+        const { error: userDeleteError } = await supabase.auth.updateUser({
+          email: `deleted_${Date.now()}@deleted.com`,
+        })
+
+        if (userDeleteError) throw userDeleteError
+      }
+
+      toast({
+        title: "Conta removida com sucesso",
+        description: "Sua conta e todos os dados foram permanentemente removidos",
+      })
+
+      // Sign out and redirect
+      await signOut()
+    } catch (error: any) {
+      toast({
+        title: "Erro ao remover conta",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+      setConfirmEmail('')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -318,6 +391,70 @@ export default function Perfil() {
               {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="border-destructive/20">
+        <CardHeader>
+          <CardTitle className="text-destructive">Zona de Perigo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              A remoção da conta é permanente e não pode ser desfeita. Todos os seus dados, incluindo transações e lembretes, serão permanentemente apagados.
+            </p>
+            
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remover Conta Permanentemente
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirmar Remoção de Conta</DialogTitle>
+                  <DialogDescription>
+                    Esta ação é irreversível. Todos os seus dados serão permanentemente apagados.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-email">
+                      Digite seu email para confirmar: <span className="font-semibold">{user?.email}</span>
+                    </Label>
+                    <Input
+                      id="confirm-email"
+                      type="email"
+                      placeholder="Confirme seu email"
+                      value={confirmEmail}
+                      onChange={(e) => setConfirmEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setDeleteDialogOpen(false)
+                      setConfirmEmail('')
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAccount}
+                    disabled={deleting || confirmEmail !== user?.email}
+                  >
+                    {deleting ? 'Removendo...' : 'Remover Conta'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardContent>
       </Card>
     </div>
