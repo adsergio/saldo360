@@ -38,7 +38,7 @@ export function AppSidebar() {
 
   // Determine which logo to use based on theme
   const getLogoSrc = () => {
-    if (theme === 'dark') {
+    if (theme === 'clean') {
       return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
     } else if (theme === 'light') {
       return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
@@ -60,9 +60,6 @@ export function AppSidebar() {
             alt="FinanceFlow" 
             className="h-8 w-auto"
           />
-          <span className="group-data-[collapsible=icon]:hidden text-lg font-bold title-color">
-            FinanceFlow
-          </span>
         </div>
       </SidebarHeader>
 

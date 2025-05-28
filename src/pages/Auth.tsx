@@ -20,7 +20,7 @@ export default function Auth() {
 
   // Determine which logo to use based on theme
   const getLogoSrc = () => {
-    if (theme === 'dark') {
+    if (theme === 'clean') {
       return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
     } else if (theme === 'light') {
       return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
@@ -45,11 +45,6 @@ export default function Auth() {
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
           <div className="flex items-center gap-3 mb-4">
-            <img 
-              src="/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png" 
-              alt="FinanceFlow" 
-              className="h-8 w-auto"
-            />
             <h2 className="text-3xl font-bold">FinanceFlow</h2>
           </div>
           <p className="text-lg opacity-90">

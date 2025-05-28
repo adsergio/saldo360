@@ -44,8 +44,8 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   return (
     <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
       <CardHeader className="text-center pb-8">
-        <CardTitle className="text-3xl font-bold text-primary">
-          Entrar
+        <CardTitle className="text-3xl font-bold text-slate-800">
+          Acessar
         </CardTitle>
         <CardDescription className="text-base text-muted-foreground">
           Entre na sua conta para acessar o sistema
