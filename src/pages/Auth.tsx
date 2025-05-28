@@ -16,7 +16,7 @@ export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login')
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background p-6">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <img
