@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header className="h-16 flex items-center justify-between px-6 bg-card border-b shadow-sm sticky top-0 z-40">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <h1 className="text-lg font-semibold text-foreground hidden sm:block">
+              <h1 className="text-lg font-semibold title-color hidden sm:block">
                 Sistema de Gestão Financeira
               </h1>
             </div>

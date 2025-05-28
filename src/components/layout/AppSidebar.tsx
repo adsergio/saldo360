@@ -1,6 +1,6 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, CreditCard, Calendar, User, LogOut, DollarSign } from 'lucide-react'
+import { Home, CreditCard, Calendar, User, LogOut } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { UserProfile } from './UserProfile'
+import { useTheme } from '@/hooks/useTheme'
 
 const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -29,21 +30,39 @@ export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
   const { signOut } = useAuth()
+  const { theme } = useTheme()
   const currentPath = location.pathname
 
   const isActive = (path: string) => currentPath === path
   const isCollapsed = state === "collapsed"
 
+  // Determine which logo to use based on theme
+  const getLogoSrc = () => {
+    if (theme === 'dark') {
+      return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
+    } else if (theme === 'light') {
+      return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
+    } else {
+      // System theme - check actual computed theme
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      return isDark 
+        ? '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
+        : '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+    }
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-            <DollarSign className="text-primary-foreground h-5 w-5" />
-          </div>
-          <h2 className={`font-bold text-lg text-primary group-data-[collapsible=icon]:hidden`}>
+          <img 
+            src={getLogoSrc()} 
+            alt="FinanceFlow" 
+            className="h-8 w-auto"
+          />
+          <span className="group-data-[collapsible=icon]:hidden text-lg font-bold title-color">
             FinanceFlow
-          </h2>
+          </span>
         </div>
       </SidebarHeader>
 

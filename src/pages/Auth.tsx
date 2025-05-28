@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
+import { useTheme } from '@/hooks/useTheme'
 
 type AuthMode = 'login' | 'register' | 'forgot'
 
@@ -14,6 +15,22 @@ const authImages = {
 
 export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login')
+  const { theme } = useTheme()
+
+  // Determine which logo to use based on theme
+  const getLogoSrc = () => {
+    if (theme === 'dark') {
+      return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
+    } else if (theme === 'light') {
+      return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
+    } else {
+      // System theme - check actual computed theme
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      return isDark 
+        ? '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
+        : '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+    }
+  }
 
   return (
     <div className="min-h-screen flex bg-background p-6">
@@ -26,7 +43,14 @@ export default function Auth() {
         />
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-3xl font-bold mb-2">FinanceFlow</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <img 
+              src="/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png" 
+              alt="FinanceFlow" 
+              className="h-8 w-auto"
+            />
+            <h2 className="text-3xl font-bold">FinanceFlow</h2>
+          </div>
           <p className="text-lg opacity-90">
             Gerencie suas finanças de forma simples e inteligente
           </p>
@@ -36,6 +60,16 @@ export default function Auth() {
       {/* Right side - Forms */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
+          {/* Logo for mobile/right side */}
+          <div className="flex items-center justify-center gap-3 mb-8 lg:hidden">
+            <img 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
+              className="h-8 w-auto"
+            />
+            <h2 className="text-2xl font-bold title-color">FinanceFlow</h2>
+          </div>
+
           {mode === 'login' && (
             <LoginForm
               onToggleMode={() => setMode('register')}
