@@ -24,10 +24,14 @@ serve(async (req) => {
       )
     }
 
+    // Criar Basic Auth header
+    const credentials = btoa('zanini:oba+1bilhao')
+    
     const response = await fetch('https://n8n.tidi.com.br/webhook/verifica-zap', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${credentials}`
       },
       body: JSON.stringify({ number: phoneNumber })
     })
@@ -38,7 +42,7 @@ serve(async (req) => {
 
     const data = await response.json()
     
-    // Converter a resposta do novo endpoint para o formato esperado
+    // Converter a resposta do endpoint para o formato esperado
     const result = {
       isValid: data.exists === "true" || data.exists === true,
       jid: data.whatsapp || null
