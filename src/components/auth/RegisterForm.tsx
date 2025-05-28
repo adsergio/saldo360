@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
 import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
 
@@ -36,7 +35,6 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
-  const { validateWhatsAppNumber, isValidating } = useWhatsAppValidation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,24 +69,10 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
     setLoading(true)
 
     try {
-      // Validar WhatsApp apenas no submit
       const fullPhone = `${countryCode.replace('+', '')}${phone}`
-      console.log('Validating phone:', fullPhone)
-      
-      const { isValid, jid, error } = await validateWhatsAppNumber(fullPhone, false)
-      
-      if (!isValid) {
-        toast({
-          title: "Erro",
-          description: error || "O número WhatsApp deve ser validado antes de continuar",
-          variant: "destructive",
-        })
-        setLoading(false)
-        return
-      }
+      console.log('Registering with phone:', fullPhone)
 
-      // Prosseguir com o cadastro
-      const { error: signUpError } = await signUp(email, password, nome, fullPhone, jid)
+      const { error: signUpError } = await signUp(email, password, nome, fullPhone)
 
       if (signUpError) {
         toast({
@@ -156,7 +140,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-sm font-medium">
-              Telefone WhatsApp *
+              Telefone *
             </Label>
             <div className="flex gap-2">
               <Select value={countryCode} onValueChange={setCountryCode}>
@@ -181,9 +165,6 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
                 className="h-11"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              O número será validado quando você criar a conta
-            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
@@ -216,12 +197,12 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           <Button
             type="submit"
             className="w-full h-11 bg-primary hover:bg-primary/90"
-            disabled={loading || isValidating}
+            disabled={loading}
           >
-            {loading || isValidating ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isValidating ? 'Validando WhatsApp...' : 'Criando conta...'}
+                Criando conta...
               </>
             ) : (
               'Criar conta'

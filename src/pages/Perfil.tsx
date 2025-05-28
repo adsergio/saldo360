@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
 import { toast } from '@/hooks/use-toast'
 import { Camera, User } from 'lucide-react'
 
@@ -15,12 +14,10 @@ interface Profile {
   nome: string
   phone: string
   avatar_url?: string
-  whatsapp?: string
 }
 
 export default function Perfil() {
   const { user } = useAuth()
-  const { validateWhatsAppNumber, isValidating } = useWhatsAppValidation()
   const [profile, setProfile] = useState<Profile>({
     nome: '',
     phone: '',
@@ -41,7 +38,7 @@ export default function Perfil() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('nome, phone, avatar_url, whatsapp')
+        .select('nome, phone, avatar_url')
         .eq('id', user?.id)
         .single()
 
@@ -67,8 +64,7 @@ export default function Perfil() {
         setProfile({
           nome: data.nome || '',
           phone: phone,
-          avatar_url: data.avatar_url,
-          whatsapp: data.whatsapp
+          avatar_url: data.avatar_url
         })
         setCurrentCountryCode(countryCode)
         setCurrentPhoneNumber(phoneNumber)
@@ -93,27 +89,12 @@ export default function Perfil() {
       // Combine country code and phone number
       const fullPhone = currentCountryCode + currentPhoneNumber
 
-      // Validate WhatsApp only on submit
-      console.log('Validating phone on submit:', fullPhone)
-      const { isValid, jid, error } = await validateWhatsAppNumber(fullPhone, false)
-
-      if (!isValid) {
-        toast({
-          title: "Erro",
-          description: error || "O número WhatsApp deve ser validado antes de salvar",
-          variant: "destructive",
-        })
-        setSaving(false)
-        return
-      }
-
       const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
           nome: profile.nome,
           phone: fullPhone,
-          whatsapp: jid,
           avatar_url: profile.avatar_url,
           updated_at: new Date().toISOString(),
         })
@@ -121,7 +102,7 @@ export default function Perfil() {
       if (updateError) throw updateError
       
       // Update local state
-      setProfile(prev => ({ ...prev, phone: fullPhone, whatsapp: jid }))
+      setProfile(prev => ({ ...prev, phone: fullPhone }))
       
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
@@ -255,7 +236,7 @@ export default function Perfil() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone WhatsApp</Label>
+              <Label htmlFor="phone">Telefone</Label>
               <PhoneInput
                 id="phone"
                 value={currentPhoneNumber}
@@ -264,20 +245,17 @@ export default function Perfil() {
                 onCountryChange={handleCountryChange}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                O número será validado quando você salvar as alterações
-              </p>
             </div>
 
             <Button 
               type="submit" 
-              disabled={saving || isValidating}
+              disabled={saving}
               className="w-full bg-primary hover:bg-primary/90"
             >
-              {saving || isValidating ? (
+              {saving ? (
                 <>
                   <span className="mr-2">⏳</span>
-                  {isValidating ? 'Validando WhatsApp...' : 'Salvando...'}
+                  Salvando...
                 </>
               ) : (
                 'Salvar Alterações'
