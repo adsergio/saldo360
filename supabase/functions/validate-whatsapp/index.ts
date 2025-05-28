@@ -25,7 +25,7 @@ serve(async (req) => {
       )
     }
 
-    // Criar Basic Auth header
+    // Criar Basic Auth header para zanini:oba+1bilhao
     const credentials = btoa('zanini:oba+1bilhao')
     console.log('Making request to n8n endpoint with phone:', phoneNumber)
     
