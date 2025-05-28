@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -24,30 +23,15 @@ serve(async (req) => {
       )
     }
 
-    const evolutionApiUrl = Deno.env.get('EvolutionAPI_URL')
-    const evolutionApiKey = Deno.env.get('EvolutionAPI_KEY')
-    const evolutionInstance = Deno.env.get('EvolutionAPI_Instance')
-
-    if (!evolutionApiUrl || !evolutionApiKey || !evolutionInstance) {
-      return new Response(
-        JSON.stringify({ error: 'Evolution API credentials not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
     const options = {
       method: 'POST',
       headers: {
-        'apikey': evolutionApiKey,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ numbers: [phoneNumber] })
+      body: JSON.stringify({ number: phoneNumber })
     }
 
-    const response = await fetch(`${evolutionApiUrl}/chat/whatsappNumbers/${evolutionInstance}`, options)
+    const response = await fetch('https://n8n.tidi.com.br/webhook-test/verificar-zap', options)
     
     if (!response.ok) {
       throw new Error('Failed to validate WhatsApp number')
@@ -55,9 +39,11 @@ serve(async (req) => {
 
     const data = await response.json()
     
+    // Assumindo que o endpoint retorna um formato similar ao anterior
+    // Ajuste conforme necessário baseado na resposta real do endpoint
     const result = {
-      isValid: data.length > 0 && data[0].exists,
-      jid: data.length > 0 ? data[0].jid : null
+      isValid: data.exists || false,
+      jid: data.jid || null
     }
 
     return new Response(
