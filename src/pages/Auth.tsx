@@ -45,7 +45,7 @@ export default function Auth() {
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-3xl font-bold">FinanceFlow</h2>
+            <h2 className="text-3xl font-bold text-white">Agora ficou fácil!</h2>
           </div>
           <p className="text-lg opacity-90">
             Gerencie suas finanças de forma simples e inteligente
