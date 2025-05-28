@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -201,7 +202,7 @@ export default function Perfil() {
               <Button
                 size="icon"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                 disabled={uploading}
                 onClick={() => document.getElementById('avatar-upload')?.click()}
               >
@@ -248,7 +249,7 @@ export default function Perfil() {
             <Button 
               type="submit" 
               disabled={saving}
-              className="w-full"
+              className="w-full bg-primary hover:bg-primary/90"
             >
               {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

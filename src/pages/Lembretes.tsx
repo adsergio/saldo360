@@ -180,7 +180,7 @@ export default function Lembretes() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+            <Button className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
               Novo Lembrete
             </Button>
@@ -230,7 +230,7 @@ export default function Lembretes() {
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                 {editingLembrete ? 'Atualizar' : 'Adicionar'} Lembrete
               </Button>
             </form>
@@ -260,7 +260,7 @@ export default function Lembretes() {
             <CardContent className="p-8 text-center">
               <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-gray-500 mb-4">Nenhum lembrete encontrado</p>
-              <Button onClick={() => setDialogOpen(true)}>
+              <Button onClick={() => setDialogOpen(true)} className="bg-primary hover:bg-primary/90">
                 Adicionar primeiro lembrete
               </Button>
             </CardContent>
@@ -301,6 +301,7 @@ export default function Lembretes() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(lembrete)}
+                        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -308,6 +309,7 @@ export default function Lembretes() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(lembrete.id)}
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
