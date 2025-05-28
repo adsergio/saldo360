@@ -46,29 +46,48 @@ export default function Perfil() {
       if (error && error.code !== 'PGRST116') throw error
       
       if (data) {
-        // Parse the phone number to separate country code and number
-        const phone = data.phone || ''
-        let countryCode = '+55'
-        let phoneNumber = ''
-        
-        if (phone) {
-          // Extract country code (assumes format like "+5511999999999")
-          const match = phone.match(/^(\+\d{1,4})(.*)$/)
-          if (match) {
-            countryCode = match[1]
-            phoneNumber = match[2]
-          } else {
-            phoneNumber = phone
-          }
-        }
-
         setProfile({
           nome: data.nome || '',
-          phone: phone,
+          phone: data.phone || '',
           avatar_url: data.avatar_url
         })
-        setCurrentCountryCode(countryCode)
-        setCurrentPhoneNumber(phoneNumber)
+
+        // Parse the phone number to separate country code and number
+        const phone = data.phone || ''
+        if (phone) {
+          // Check if phone starts with +
+          if (phone.startsWith('+')) {
+            // Extract country code and number for phones like "+5511999999999"
+            const brazilMatch = phone.match(/^(\+55)(.*)$/)
+            const usMatch = phone.match(/^(\+1)(.*)$/)
+            const argMatch = phone.match(/^(\+54)(.*)$/)
+            const generalMatch = phone.match(/^(\+\d{1,4})(.*)$/)
+            
+            if (brazilMatch) {
+              setCurrentCountryCode('+55')
+              setCurrentPhoneNumber(brazilMatch[2])
+            } else if (usMatch) {
+              setCurrentCountryCode('+1')
+              setCurrentPhoneNumber(usMatch[2])
+            } else if (argMatch) {
+              setCurrentCountryCode('+54')
+              setCurrentPhoneNumber(argMatch[2])
+            } else if (generalMatch) {
+              setCurrentCountryCode(generalMatch[1])
+              setCurrentPhoneNumber(generalMatch[2])
+            } else {
+              setCurrentCountryCode('+55')
+              setCurrentPhoneNumber(phone)
+            }
+          } else {
+            // If no + sign, assume it's just the number with default country code
+            setCurrentCountryCode('+55')
+            setCurrentPhoneNumber(phone)
+          }
+        } else {
+          setCurrentCountryCode('+55')
+          setCurrentPhoneNumber('')
+        }
       }
     } catch (error: any) {
       toast({
@@ -86,8 +105,15 @@ export default function Perfil() {
     setSaving(true)
 
     try {
-      // Combine country code and phone number
-      const fullPhone = currentCountryCode + currentPhoneNumber
+      // Only combine if we have both country code and phone number
+      let fullPhone = ''
+      if (currentPhoneNumber.trim()) {
+        fullPhone = currentCountryCode + currentPhoneNumber.replace(/\D/g, '')
+      }
+
+      console.log('Saving profile with phone:', fullPhone)
+      console.log('Country code:', currentCountryCode)
+      console.log('Phone number:', currentPhoneNumber)
 
       const { error } = await supabase
         .from('profiles')
@@ -164,10 +190,12 @@ export default function Perfil() {
   }
 
   const handlePhoneChange = (phone: string) => {
+    console.log('Phone changed to:', phone)
     setCurrentPhoneNumber(phone)
   }
 
   const handleCountryChange = (country_code: string) => {
+    console.log('Country code changed to:', country_code)
     setCurrentCountryCode(country_code)
   }
 
