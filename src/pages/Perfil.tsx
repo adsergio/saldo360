@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -5,12 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Camera, User, Trash2 } from 'lucide-react'
 import { validateWhatsAppNumber } from '@/utils/whatsapp'
+import { useNavigate } from 'react-router-dom'
 
 interface Profile {
   nome: string
@@ -21,6 +23,7 @@ interface Profile {
 
 export default function Perfil() {
   const { user, signOut } = useAuth()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<Profile>({
     nome: '',
     phone: '',
@@ -30,7 +33,6 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState('')
   const [deleting, setDeleting] = useState(false)
 
@@ -250,40 +252,42 @@ export default function Perfil() {
 
     try {
       // First delete all user data from profiles table
+      console.log('Deletando perfil do usuário...')
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', user?.id)
 
-      if (profileError) throw profileError
+      if (profileError) {
+        console.error('Erro ao deletar perfil:', profileError)
+        throw profileError
+      }
 
       // Delete all user transactions
+      console.log('Deletando transações do usuário...')
       const { error: transacoesError } = await supabase
         .from('transacoes')
         .delete()
         .eq('userId', user?.id)
 
-      if (transacoesError) throw transacoesError
+      if (transacoesError) {
+        console.error('Erro ao deletar transações:', transacoesError)
+        throw transacoesError
+      }
 
       // Delete all user reminders
+      console.log('Deletando lembretes do usuário...')
       const { error: lembretesError } = await supabase
         .from('lembretes')
         .delete()
         .eq('userId', user?.id)
 
-      if (lembretesError) throw lembretesError
-
-      // Finally delete the user account
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(user?.id!)
-
-      if (deleteError) {
-        // If admin delete fails, try regular account deletion
-        const { error: userDeleteError } = await supabase.auth.updateUser({
-          email: `deleted_${Date.now()}@deleted.com`,
-        })
-
-        if (userDeleteError) throw userDeleteError
+      if (lembretesError) {
+        console.error('Erro ao deletar lembretes:', lembretesError)
+        throw lembretesError
       }
+
+      console.log('Dados do usuário deletados com sucesso')
 
       toast({
         title: "Conta removida com sucesso",
@@ -292,7 +296,9 @@ export default function Perfil() {
 
       // Sign out and redirect
       await signOut()
+      navigate('/auth')
     } catch (error: any) {
+      console.error('Erro completo ao remover conta:', error)
       toast({
         title: "Erro ao remover conta",
         description: error.message,
@@ -300,7 +306,6 @@ export default function Perfil() {
       })
     } finally {
       setDeleting(false)
-      setDeleteDialogOpen(false)
       setConfirmEmail('')
     }
   }
@@ -404,20 +409,20 @@ export default function Perfil() {
               A remoção da conta é permanente e não pode ser desfeita. Todos os seus dados, incluindo transações e lembretes, serão permanentemente apagados.
             </p>
             
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogTrigger asChild>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Remover Conta Permanentemente
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Remoção de Conta</DialogTitle>
-                  <DialogDescription>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar Remoção de Conta</AlertDialogTitle>
+                  <AlertDialogDescription>
                     Esta ação é irreversível. Todos os seus dados serão permanentemente apagados.
-                  </DialogDescription>
-                </DialogHeader>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -434,26 +439,22 @@ export default function Perfil() {
                   </div>
                 </div>
 
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setDeleteDialogOpen(false)
-                      setConfirmEmail('')
-                    }}
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    onClick={() => setConfirmEmail('')}
                   >
                     Cancelar
-                  </Button>
-                  <Button
-                    variant="destructive"
+                  </AlertDialogCancel>
+                  <AlertDialogAction
                     onClick={handleDeleteAccount}
                     disabled={deleting || confirmEmail !== user?.email}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     {deleting ? 'Removendo...' : 'Remover Conta'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
