@@ -31,32 +31,39 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path
   const isCollapsed = state === "collapsed"
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700 font-medium' : 'hover:bg-gray-100'
 
   return (
     <Sidebar
-      className={isCollapsed ? 'w-14' : 'w-60'}
+      className={isCollapsed ? 'w-14' : 'w-64'}
       collapsible="offcanvas"
     >
       <SidebarTrigger className="m-2 self-end" />
 
-      <SidebarContent>
-        <div className="p-4">
-          <h2 className={`font-bold text-xl bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent ${isCollapsed ? 'hidden' : ''}`}>
+      <SidebarContent className="border-r">
+        <div className="p-6">
+          <h2 className={`font-bold text-xl text-primary ${isCollapsed ? 'hidden' : ''}`}>
             FinanceFlow
           </h2>
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-6">
+            Menu
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="px-3">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavCls}>
-                      <item.icon className="mr-2 h-4 w-4" />
+                  <SidebarMenuButton
+                    asChild
+                    className={`mb-1 ${
+                      isActive(item.url)
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'hover:bg-accent'
+                    }`}
+                  >
+                    <NavLink to={item.url} end>
+                      <item.icon className="h-4 w-4" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -70,7 +77,8 @@ export function AppSidebar() {
           <Button
             onClick={signOut}
             variant="outline"
-            className={`w-full ${isCollapsed ? 'px-2' : ''}`}
+            size={isCollapsed ? "icon" : "default"}
+            className="w-full"
           >
             <LogOut className="h-4 w-4" />
             {!isCollapsed && <span className="ml-2">Sair</span>}

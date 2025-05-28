@@ -40,19 +40,21 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+    <Card className="border-0 shadow-none">
+      <CardHeader className="text-center pb-8">
+        <CardTitle className="text-3xl font-bold text-primary">
           Recuperar Senha
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-base text-muted-foreground">
           Digite seu email para receber as instruções de recuperação
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -60,11 +62,12 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+            className="w-full h-11 bg-primary hover:bg-primary/90"
             disabled={loading}
           >
             {loading ? (
@@ -77,8 +80,12 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
             )}
           </Button>
         </form>
-        <div className="mt-4 text-center">
-          <Button variant="link" onClick={onBack} className="text-sm">
+        <div className="mt-6 text-center">
+          <Button
+            variant="link"
+            onClick={onBack}
+            className="text-sm text-muted-foreground hover:text-primary"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar ao login
           </Button>

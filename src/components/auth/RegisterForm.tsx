@@ -62,19 +62,21 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-          FinanceFlow
+    <Card className="border-0 shadow-none">
+      <CardHeader className="text-center pb-8">
+        <CardTitle className="text-3xl font-bold text-primary">
+          Criar Conta
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-base text-muted-foreground">
           Crie sua conta para começar a gerenciar suas finanças
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome completo</Label>
+            <Label htmlFor="nome" className="text-sm font-medium">
+              Nome completo
+            </Label>
             <Input
               id="nome"
               type="text"
@@ -82,10 +84,13 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -93,10 +98,13 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password" className="text-sm font-medium">
+              Senha
+            </Label>
             <Input
               id="password"
               type="password"
@@ -104,10 +112,13 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar senha</Label>
+            <Label htmlFor="confirmPassword" className="text-sm font-medium">
+              Confirmar senha
+            </Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -115,11 +126,12 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+            className="w-full h-11 bg-primary hover:bg-primary/90"
             disabled={loading}
           >
             {loading ? (
@@ -132,10 +144,14 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             )}
           </Button>
         </form>
-        <div className="mt-4 text-center">
-          <div className="text-sm text-gray-600">
+        <div className="mt-6 text-center">
+          <div className="text-sm text-muted-foreground">
             Já tem uma conta?{' '}
-            <Button variant="link" onClick={onToggleMode} className="p-0">
+            <Button
+              variant="link"
+              onClick={onToggleMode}
+              className="p-0 text-primary hover:text-primary/80"
+            >
               Fazer login
             </Button>
           </div>

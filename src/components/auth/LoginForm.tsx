@@ -42,19 +42,21 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-          FinanceFlow
+    <Card className="border-0 shadow-none">
+      <CardHeader className="text-center pb-8">
+        <CardTitle className="text-3xl font-bold text-primary">
+          Entrar
         </CardTitle>
-        <CardDescription>
-          Entre na sua conta para gerenciar suas finanças
+        <CardDescription className="text-base text-muted-foreground">
+          Entre na sua conta para acessar o sistema
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -62,10 +64,13 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password" className="text-sm font-medium">
+              Senha
+            </Label>
             <Input
               id="password"
               type="password"
@@ -73,11 +78,12 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-11"
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+            className="w-full h-11 bg-primary hover:bg-primary/90"
             disabled={loading}
           >
             {loading ? (
@@ -90,17 +96,21 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
             )}
           </Button>
         </form>
-        <div className="mt-4 text-center space-y-2">
+        <div className="mt-6 text-center space-y-4">
           <Button
             variant="link"
             onClick={onForgotPassword}
-            className="text-sm text-gray-600"
+            className="text-sm text-muted-foreground hover:text-primary"
           >
             Esqueci minha senha
           </Button>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             Não tem uma conta?{' '}
-            <Button variant="link" onClick={onToggleMode} className="p-0">
+            <Button
+              variant="link"
+              onClick={onToggleMode}
+              className="p-0 text-primary hover:text-primary/80"
+            >
               Criar conta
             </Button>
           </div>
