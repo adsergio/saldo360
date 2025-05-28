@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { EvolutionConfig } from '@/components/evolution/EvolutionConfig'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
 import { toast } from '@/hooks/use-toast'
 import { Camera, User } from 'lucide-react'
 
@@ -15,10 +17,12 @@ interface Profile {
   nome: string
   phone: string
   avatar_url?: string
+  whatsapp?: string
 }
 
 export default function Perfil() {
   const { user } = useAuth()
+  const { validateWhatsAppNumber, isValidating } = useWhatsAppValidation()
   const [profile, setProfile] = useState<Profile>({
     nome: '',
     phone: '',
@@ -39,7 +43,7 @@ export default function Perfil() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('nome, phone, avatar_url')
+        .select('nome, phone, avatar_url, whatsapp')
         .eq('id', user?.id)
         .single()
 
@@ -65,7 +69,8 @@ export default function Perfil() {
         setProfile({
           nome: data.nome || '',
           phone: phone,
-          avatar_url: data.avatar_url
+          avatar_url: data.avatar_url,
+          whatsapp: data.whatsapp
         })
         setCurrentCountryCode(countryCode)
         setCurrentPhoneNumber(phoneNumber)
@@ -89,12 +94,26 @@ export default function Perfil() {
       // Combine country code and phone number
       const fullPhone = currentCountryCode + currentPhoneNumber
 
+      // Validar WhatsApp se o telefone mudou
+      let whatsappJid = profile.whatsapp
+      if (fullPhone !== profile.phone) {
+        const { isValid, jid } = await validateWhatsAppNumber(fullPhone)
+        
+        if (!isValid) {
+          setSaving(false)
+          return
+        }
+        
+        whatsappJid = jid
+      }
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
           nome: profile.nome,
           phone: fullPhone,
+          whatsapp: whatsappJid,
           avatar_url: profile.avatar_url,
           updated_at: new Date().toISOString(),
         })
@@ -102,7 +121,7 @@ export default function Perfil() {
       if (error) throw error
       
       // Update local state
-      setProfile(prev => ({ ...prev, phone: fullPhone }))
+      setProfile(prev => ({ ...prev, phone: fullPhone, whatsapp: whatsappJid }))
       
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
@@ -186,6 +205,10 @@ export default function Perfil() {
         <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
       </div>
 
+      <div className="mb-4">
+        <EvolutionConfig />
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Informações Pessoais</CardTitle>
@@ -235,7 +258,7 @@ export default function Perfil() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="phone">Telefone WhatsApp</Label>
               <PhoneInput
                 id="phone"
                 value={currentPhoneNumber}
@@ -244,14 +267,24 @@ export default function Perfil() {
                 onCountryChange={handleCountryChange}
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                O número será validado para confirmar se possui WhatsApp ativo
+              </p>
+              {profile.whatsapp && (
+                <p className="text-xs text-green-600">
+                  ✓ WhatsApp validado: {profile.whatsapp}
+                </p>
+              )}
             </div>
 
             <Button 
               type="submit" 
-              disabled={saving}
+              disabled={saving || isValidating}
               className="w-full bg-primary hover:bg-primary/90"
             >
-              {saving ? 'Salvando...' : 'Salvar Alterações'}
+              {saving || isValidating ? (
+                isValidating ? 'Validando WhatsApp...' : 'Salvando...'
+              ) : 'Salvar Alterações'}
             </Button>
           </form>
         </CardContent>
