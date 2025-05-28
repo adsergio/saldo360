@@ -28,8 +28,8 @@ export default function Auth() {
       // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
-        ? '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
-        : '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        ? '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        : '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
     }
   }
 
@@ -55,31 +55,20 @@ export default function Auth() {
 
       {/* Right side - Forms */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
-        {/* Theme Toggle - Top Right */}
-        <div className="absolute top-4 right-4">
+        {/* Header with Logo and Theme Toggle */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+          {/* Logo */}
+          <img 
+            src={getLogoSrc()} 
+            alt="FinanceFlow" 
+            className="h-8 w-auto"
+          />
+          
+          {/* Theme Toggle */}
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-md">
-          {/* Logo for mobile/right side - Top Right of form area */}
-          <div className="flex items-center justify-between mb-8">
-            <div></div> {/* Empty div for spacing */}
-            <img 
-              src={getLogoSrc()} 
-              alt="FinanceFlow" 
-              className="h-8 w-auto lg:hidden"
-            />
-          </div>
-
-          {/* Desktop logo - only show logo without title */}
-          <div className="hidden lg:flex justify-end mb-8">
-            <img 
-              src={getLogoSrc()} 
-              alt="FinanceFlow" 
-              className="h-8 w-auto"
-            />
-          </div>
-
+        <div className="w-full max-w-md mt-16">
           {mode === 'login' && (
             <LoginForm
               onToggleMode={() => setMode('register')}

@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
@@ -42,80 +41,80 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
-      <CardHeader className="text-center pb-8">
-        <CardTitle className="text-3xl font-bold text-slate-800">
+    <div className="w-full max-w-md mx-auto">
+      <div className="text-center pb-8">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">
           Acessar
-        </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
+        </h1>
+        <p className="text-base text-muted-foreground">
           Entre na sua conta para acessar o sistema
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-11"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">
-              Senha
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="h-11"
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full h-11 bg-primary hover:bg-primary/90"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              'Entrar'
-            )}
-          </Button>
-        </form>
-        <div className="mt-6 text-center space-y-4">
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-11"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium">
+            Senha
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-11"
+          />
+        </div>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-primary hover:bg-primary/90"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Entrando...
+            </>
+          ) : (
+            'Entrar'
+          )}
+        </Button>
+      </form>
+      
+      <div className="mt-6 text-center space-y-4">
+        <Button
+          variant="link"
+          onClick={onForgotPassword}
+          className="text-sm text-muted-foreground hover:text-primary"
+        >
+          Esqueci minha senha
+        </Button>
+        <div className="text-sm text-muted-foreground">
+          Não tem uma conta?{' '}
           <Button
             variant="link"
-            onClick={onForgotPassword}
-            className="text-sm text-muted-foreground hover:text-primary"
+            onClick={onToggleMode}
+            className="p-0 text-primary hover:text-primary/80"
           >
-            Esqueci minha senha
+            Criar conta
           </Button>
-          <div className="text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
-            <Button
-              variant="link"
-              onClick={onToggleMode}
-              className="p-0 text-primary hover:text-primary/80"
-            >
-              Criar conta
-            </Button>
-          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

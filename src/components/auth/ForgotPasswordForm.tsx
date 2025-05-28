@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Loader2, ArrowLeft } from 'lucide-react'
@@ -40,57 +39,57 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
-      <CardHeader className="text-center pb-8">
-        <CardTitle className="text-3xl font-bold text-primary">
+    <div className="w-full max-w-md mx-auto">
+      <div className="text-center pb-8">
+        <h1 className="text-3xl font-bold text-primary mb-2">
           Recuperar Senha
-        </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
+        </h1>
+        <p className="text-base text-muted-foreground">
           Digite seu email para receber as instruções de recuperação
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-11"
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full h-11 bg-primary hover:bg-primary/90"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando...
-              </>
-            ) : (
-              'Enviar instruções'
-            )}
-          </Button>
-        </form>
-        <div className="mt-6 text-center">
-          <Button
-            variant="link"
-            onClick={onBack}
-            className="text-sm text-muted-foreground hover:text-primary"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar ao login
-          </Button>
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-11"
+          />
         </div>
-      </CardContent>
-    </Card>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-primary hover:bg-primary/90"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Enviando...
+            </>
+          ) : (
+            'Enviar instruções'
+          )}
+        </Button>
+      </form>
+      
+      <div className="mt-6 text-center">
+        <Button
+          variant="link"
+          onClick={onBack}
+          className="text-sm text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar ao login
+        </Button>
+      </div>
+    </div>
   )
 }
