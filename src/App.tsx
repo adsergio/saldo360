@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
@@ -58,12 +58,8 @@ function AppRoutes() {
         element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
       />
       <Route 
-        path="/landing" 
-        element={<Landing />} 
-      />
-      <Route 
         path="/" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Landing />} 
+        element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} 
       />
       <Route
         path="/dashboard"
