@@ -57,18 +57,18 @@ export default function Auth() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         {/* Header with Logo and Theme Toggle */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-          {/* Logo */}
+          
+          {/* Theme Toggle */}
+          <ThemeToggle />
+        </div>
+
+        <div className="w-full max-w-md mt-16 justify-center">
           <img 
             src={getLogoSrc()} 
             alt="FinanceFlow" 
             className="h-8 w-auto"
           />
           
-          {/* Theme Toggle */}
-          <ThemeToggle />
-        </div>
-
-        <div className="w-full max-w-md mt-16">
           {mode === 'login' && (
             <LoginForm
               onToggleMode={() => setMode('register')}
