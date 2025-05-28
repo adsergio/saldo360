@@ -18,11 +18,11 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex bg-background p-6">
       {/* Left side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden rounded-3xl">
         <img
           src={authImages[mode]}
           alt="Finance Management"
-          className="w-full h-full object-cover rounded-3xl"
+          className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
