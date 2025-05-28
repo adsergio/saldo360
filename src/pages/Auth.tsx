@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/hooks/useTheme'
 
 type AuthMode = 'login' | 'register' | 'forgot'
@@ -58,16 +59,30 @@ export default function Auth() {
       </div>
 
       {/* Right side - Forms */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        {/* Theme Toggle - Top Right */}
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
         <div className="w-full max-w-md">
-          {/* Logo for mobile/right side */}
-          <div className="flex items-center justify-center gap-3 mb-8 lg:hidden">
+          {/* Logo for mobile/right side - Top Right of form area */}
+          <div className="flex items-center justify-between mb-8">
+            <div></div> {/* Empty div for spacing */}
+            <img 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
+              className="h-8 w-auto lg:hidden"
+            />
+          </div>
+
+          {/* Desktop logo - only show logo without title */}
+          <div className="hidden lg:flex justify-end mb-8">
             <img 
               src={getLogoSrc()} 
               alt="FinanceFlow" 
               className="h-8 w-auto"
             />
-            <h2 className="text-2xl font-bold title-color">FinanceFlow</h2>
           </div>
 
           {mode === 'login' && (

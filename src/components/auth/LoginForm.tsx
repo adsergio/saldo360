@@ -42,7 +42,7 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   }
 
   return (
-    <Card className="border-0 shadow-none">
+    <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
       <CardHeader className="text-center pb-8">
         <CardTitle className="text-3xl font-bold text-primary">
           Entrar
