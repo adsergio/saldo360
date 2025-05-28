@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
@@ -12,11 +13,26 @@ interface RegisterFormProps {
   onToggleMode: () => void
 }
 
+const countryCodes = [
+  { code: '+55', country: 'Brasil', flag: '🇧🇷' },
+  { code: '+1', country: 'EUA/Canadá', flag: '🇺🇸' },
+  { code: '+44', country: 'Reino Unido', flag: '🇬🇧' },
+  { code: '+49', country: 'Alemanha', flag: '🇩🇪' },
+  { code: '+33', country: 'França', flag: '🇫🇷' },
+  { code: '+34', country: 'Espanha', flag: '🇪🇸' },
+  { code: '+39', country: 'Itália', flag: '🇮🇹' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+52', country: 'México', flag: '🇲🇽' },
+]
+
 export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [nome, setNome] = useState('')
+  const [countryCode, setCountryCode] = useState('+55')
+  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
 
@@ -41,9 +57,21 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       return
     }
 
+    if (!phone.trim()) {
+      toast({
+        title: "Erro",
+        description: "O telefone é obrigatório",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
-    const { error } = await signUp(email, password, nome)
+    // Remove o sinal de + do código do país antes de salvar
+    const fullPhone = `${countryCode.replace('+', '')}${phone}`
+
+    const { error } = await signUp(email, password, nome, fullPhone)
 
     if (error) {
       toast({
@@ -75,7 +103,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="nome" className="text-sm font-medium">
-              Nome completo
+              Nome completo *
             </Label>
             <Input
               id="nome"
@@ -89,7 +117,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">
-              Email
+              Email *
             </Label>
             <Input
               id="email"
@@ -102,8 +130,36 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="phone" className="text-sm font-medium">
+              Telefone *
+            </Label>
+            <div className="flex gap-2">
+              <Select value={countryCode} onValueChange={setCountryCode}>
+                <SelectTrigger className="w-[140px] h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryCodes.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.flag} {country.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="11999999999"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                required
+                className="h-11 flex-1"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
-              Senha
+              Senha *
             </Label>
             <Input
               id="password"
@@ -117,7 +173,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirmar senha
+              Confirmar senha *
             </Label>
             <Input
               id="confirmPassword"
