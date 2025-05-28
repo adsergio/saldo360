@@ -90,9 +90,10 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="text-center pb-8">
+      <div className="text-start py-8">
         <h1 className="text-lg font-bold text-slate-800 mb-2">
-          Criar Conta
+          Criar conta
+        </h1>
         </h1>
         <p className="text-base text-muted-foreground">
           Crie sua conta para começar a gerenciar suas finanças
