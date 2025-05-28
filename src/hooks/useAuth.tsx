@@ -1,6 +1,8 @@
+
 import { useState, useEffect, createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { validateWhatsAppNumber } from '@/utils/whatsapp'
 
 interface AuthContextType {
   user: User | null
@@ -48,23 +50,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, nome: string, phone?: string, whatsapp?: string) => {
-    const { error, data } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    try {
+      let whatsappId = whatsapp
 
-    if (!error && data.user) {
-      // Create profile
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        nome,
-        phone,
-        whatsapp,
-        updated_at: new Date().toISOString(),
+      // Se um telefone foi fornecido, validar o WhatsApp
+      if (phone) {
+        console.log('Validando WhatsApp para:', phone)
+        const whatsappValidation = await validateWhatsAppNumber(phone)
+        
+        if (!whatsappValidation.exists) {
+          return { error: { message: 'Este número não possui WhatsApp ativo' } }
+        }
+        
+        whatsappId = whatsappValidation.whatsappId
+      }
+
+      // Criar a conta de usuário
+      const { error: signUpError, data } = await supabase.auth.signUp({
+        email,
+        password,
       })
-    }
 
-    return { error }
+      if (signUpError) {
+        return { error: signUpError }
+      }
+
+      // Se a conta foi criada com sucesso, criar o perfil
+      if (data.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          nome,
+          phone: phone || null,
+          whatsapp: whatsappId || null,
+          updated_at: new Date().toISOString(),
+        })
+
+        if (profileError) {
+          console.error('Erro ao criar perfil:', profileError)
+          return { error: profileError }
+        }
+      }
+
+      return { error: null }
+    } catch (error: any) {
+      console.error('Erro no signup:', error)
+      return { error: { message: error.message } }
+    }
   }
 
   const signOut = async () => {

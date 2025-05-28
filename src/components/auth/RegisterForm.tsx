@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
-import { validateWhatsAppNumber } from '@/utils/whatsapp'
 
 interface RegisterFormProps {
   onToggleMode: () => void
@@ -71,22 +70,8 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       // Remove o sinal de + do código do país antes de salvar
       const fullPhone = `${countryCode.replace('+', '')}${phone}`
 
-      // Validar WhatsApp
-      console.log('Validando WhatsApp para:', fullPhone)
-      const whatsappValidation = await validateWhatsAppNumber(fullPhone)
-      
-      if (!whatsappValidation.exists) {
-        toast({
-          title: "Erro",
-          description: "Este número não possui WhatsApp ativo",
-          variant: "destructive",
-        })
-        setLoading(false)
-        return
-      }
-
-      // Criar conta
-      const { error } = await signUp(email, password, nome, fullPhone, whatsappValidation.whatsappId)
+      // Criar conta (a validação do WhatsApp agora é feita dentro do signUp)
+      const { error } = await signUp(email, password, nome, fullPhone)
 
       if (error) {
         toast({
@@ -102,7 +87,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       }
     } catch (error: any) {
       toast({
-        title: "Erro na validação",
+        title: "Erro no cadastro",
         description: error.message,
         variant: "destructive",
       })
