@@ -46,20 +46,28 @@ export function AppSidebar() {
       // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
-        ? '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
-        : '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        ? '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        : '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
     }
   }
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <img 
-            src={getLogoSrc()} 
-            alt="FinanceFlow" 
-            className="h-8 w-auto"
-          />
+        <div className="flex items-center justify-center">
+          {isCollapsed ? (
+            <img 
+              src="/lovable-uploads/a5a40de7-4096-4a32-af0c-76fe03ec72f7.png"
+              alt="FinanceFlow Icon" 
+              className="h-8 w-8"
+            />
+          ) : (
+            <img 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
+              className="h-8 w-auto"
+            />
+          )}
         </div>
       </SidebarHeader>
 
