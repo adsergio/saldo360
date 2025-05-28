@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,7 +5,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { EvolutionConfig } from '@/components/evolution/EvolutionConfig'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
@@ -203,10 +201,6 @@ export default function Perfil() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Perfil</h2>
         <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
-      </div>
-
-      <div className="mb-4">
-        <EvolutionConfig />
       </div>
 
       <Card>

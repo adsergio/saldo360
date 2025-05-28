@@ -1,12 +1,7 @@
 
 import { useState } from 'react'
 import { toast } from '@/hooks/use-toast'
-
-interface WhatsAppResponse {
-  exists: boolean
-  jid: string
-  number: string
-}
+import { supabase } from '@/lib/supabase'
 
 export function useWhatsAppValidation() {
   const [isValidating, setIsValidating] = useState(false)
@@ -15,39 +10,16 @@ export function useWhatsAppValidation() {
     setIsValidating(true)
     
     try {
-      // Obter a API key do localStorage
-      const apiKey = localStorage.getItem('evolution-api-key')
-      const serverUrl = localStorage.getItem('evolution-server-url')
-      const instance = localStorage.getItem('evolution-instance')
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp', {
+        body: { phoneNumber }
+      })
 
-      if (!apiKey || !serverUrl || !instance) {
-        toast({
-          title: "Configuração necessária",
-          description: "Configure suas credenciais da Evolution API nas configurações",
-          variant: "destructive",
-        })
-        return { isValid: false }
+      if (error) {
+        throw new Error(error.message)
       }
 
-      const options = {
-        method: 'POST',
-        headers: {
-          'apikey': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ numbers: [phoneNumber] })
-      }
-
-      const response = await fetch(`${serverUrl}/chat/whatsappNumbers/${instance}`, options)
-      
-      if (!response.ok) {
-        throw new Error('Erro na validação do WhatsApp')
-      }
-
-      const data: WhatsAppResponse[] = await response.json()
-      
-      if (data.length > 0 && data[0].exists) {
-        return { isValid: true, jid: data[0].jid }
+      if (data.isValid) {
+        return { isValid: true, jid: data.jid }
       } else {
         toast({
           title: "Número não encontrado",
