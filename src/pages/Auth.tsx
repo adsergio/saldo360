@@ -22,7 +22,7 @@ export default function Auth() {
         <img
           src={authImages[mode]}
           alt="Finance Management"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-3xl"
         />
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
