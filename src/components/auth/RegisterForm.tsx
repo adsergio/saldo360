@@ -94,7 +94,6 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
         <h1 className="text-lg font-bold text-slate-800 mb-2">
           Criar conta
         </h1>
-        </h1>
         <p className="text-base text-muted-foreground">
           Crie sua conta para começar a gerenciar suas finanças
         </p>
