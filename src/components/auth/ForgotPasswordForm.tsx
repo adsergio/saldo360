@@ -41,7 +41,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-start py-8">
-        <h1 className="text-lg font-bold text-slate-800 mb-2">
+        <h1 className="text-lg font-bold text-slate-800 mb-2 dark:text-slate-300">
           Recuperar Senha
         </h1>
         <p className="text-base text-muted-foreground">
