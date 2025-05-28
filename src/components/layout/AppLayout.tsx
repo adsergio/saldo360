@@ -1,5 +1,5 @@
 
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from './AppSidebar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
@@ -12,11 +12,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <main className="flex-1 flex flex-col">
-          <header className="h-16 flex items-center justify-between px-6 bg-card border-b shadow-sm">
+        <SidebarInset>
+          <header className="h-16 flex items-center justify-between px-6 bg-card border-b shadow-sm sticky top-0 z-40">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="md:hidden" />
-              <h1 className="text-lg font-semibold text-foreground">
+              <SidebarTrigger />
+              <h1 className="text-lg font-semibold text-foreground hidden sm:block">
                 Sistema de Gestão Financeira
               </h1>
             </div>
@@ -25,7 +25,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex-1 p-6 bg-background">
             {children}
           </div>
-        </main>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   )

@@ -1,17 +1,19 @@
-
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect, useMemo } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { CurrencyInput } from '@/components/ui/currency-input'
+import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
+import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Plus, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
+import { formatCurrency } from '@/utils/currency'
 
 interface Transacao {
   id: number
@@ -31,10 +33,16 @@ export default function Transacoes() {
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transacao | null>(null)
+  
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+
   const [formData, setFormData] = useState({
     quando: '',
     estabelecimento: '',
-    valor: '',
+    valor: 0,
     detalhes: '',
     tipo: '',
     categoria: '',
@@ -45,6 +53,35 @@ export default function Transacoes() {
       fetchTransacoes()
     }
   }, [user])
+
+  // Transações filtradas
+  const filteredTransacoes = useMemo(() => {
+    return transacoes.filter(transacao => {
+      const matchesSearch = !searchTerm || 
+        (transacao.estabelecimento?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+      const matchesType = !typeFilter || transacao.tipo === typeFilter
+      const matchesCategory = !categoryFilter || transacao.categoria === categoryFilter
+      
+      return matchesSearch && matchesType && matchesCategory
+    })
+  }, [transacoes, searchTerm, typeFilter, categoryFilter])
+
+  // Cálculo dos totais
+  const { receitas, despesas, saldo } = useMemo(() => {
+    const receitas = filteredTransacoes
+      .filter(t => t.tipo === 'receita')
+      .reduce((acc, t) => acc + (t.valor || 0), 0)
+    
+    const despesas = filteredTransacoes
+      .filter(t => t.tipo === 'despesa')
+      .reduce((acc, t) => acc + (t.valor || 0), 0)
+    
+    return {
+      receitas,
+      despesas,
+      saldo: receitas - despesas
+    }
+  }, [filteredTransacoes])
 
   const fetchTransacoes = async () => {
     try {
@@ -67,6 +104,12 @@ export default function Transacoes() {
     }
   }
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setTypeFilter('')
+    setCategoryFilter('')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -74,7 +117,7 @@ export default function Transacoes() {
       const transacaoData = {
         quando: formData.quando,
         estabelecimento: formData.estabelecimento,
-        valor: parseFloat(formData.valor),
+        valor: formData.valor,
         detalhes: formData.detalhes,
         tipo: formData.tipo,
         categoria: formData.categoria,
@@ -103,7 +146,7 @@ export default function Transacoes() {
       setFormData({
         quando: '',
         estabelecimento: '',
-        valor: '',
+        valor: 0,
         detalhes: '',
         tipo: '',
         categoria: '',
@@ -123,7 +166,7 @@ export default function Transacoes() {
     setFormData({
       quando: transacao.quando || '',
       estabelecimento: transacao.estabelecimento || '',
-      valor: transacao.valor?.toString() || '',
+      valor: transacao.valor || 0,
       detalhes: transacao.detalhes || '',
       tipo: transacao.tipo || '',
       categoria: transacao.categoria || '',
@@ -152,13 +195,6 @@ export default function Transacoes() {
     }
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -167,12 +203,12 @@ export default function Transacoes() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Transações</h2>
-          <p className="text-gray-600">Gerencie suas receitas e despesas</p>
+          <h2 className="text-3xl font-bold tracking-tight">Transações</h2>
+          <p className="text-muted-foreground">Gerencie suas receitas e despesas</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+            <Button className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
               Nova Transação
             </Button>
@@ -204,13 +240,9 @@ export default function Transacoes() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="valor">Valor</Label>
-                  <Input
-                    id="valor"
-                    type="number"
-                    step="0.01"
-                    placeholder="0,00"
+                  <CurrencyInput
                     value={formData.valor}
-                    onChange={(e) => setFormData({...formData, valor: e.target.value})}
+                    onChange={(value) => setFormData({...formData, valor: value})}
                     required
                   />
                 </div>
@@ -261,13 +293,29 @@ export default function Transacoes() {
                   onChange={(e) => setFormData({...formData, detalhes: e.target.value})}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                 {editingTransaction ? 'Atualizar' : 'Adicionar'} Transação
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
+
+      <TransactionSummaryCards 
+        receitas={receitas}
+        despesas={despesas}
+        saldo={saldo}
+      />
+
+      <TransactionFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={setCategoryFilter}
+        onClearFilters={clearFilters}
+      />
 
       <div className="grid gap-4">
         {loading ? (
@@ -286,17 +334,19 @@ export default function Transacoes() {
               </Card>
             ))}
           </div>
-        ) : transacoes.length === 0 ? (
+        ) : filteredTransacoes.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-gray-500 mb-4">Nenhuma transação encontrada</p>
-              <Button onClick={() => setDialogOpen(true)}>
+              <p className="text-muted-foreground mb-4">
+                {transacoes.length === 0 ? 'Nenhuma transação encontrada' : 'Nenhuma transação encontrada com os filtros aplicados'}
+              </p>
+              <Button onClick={() => setDialogOpen(true)} className="bg-primary hover:bg-primary/90">
                 Adicionar primeira transação
               </Button>
             </CardContent>
           </Card>
         ) : (
-          transacoes.map((transacao) => (
+          filteredTransacoes.map((transacao) => (
             <Card key={transacao.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -314,7 +364,7 @@ export default function Transacoes() {
                         {transacao.tipo}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       {transacao.categoria && (
                         <p>Categoria: {transacao.categoria}</p>
                       )}
@@ -338,6 +388,7 @@ export default function Transacoes() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(transacao)}
+                        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -345,6 +396,7 @@ export default function Transacoes() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(transacao.id)}
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

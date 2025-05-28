@@ -10,11 +10,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
+import { UserProfile } from './UserProfile'
 
 const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -33,30 +35,30 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed"
 
   return (
-    <Sidebar
-      className={isCollapsed ? 'w-14' : 'w-64'}
-      collapsible="offcanvas"
-    >
-      <SidebarTrigger className="m-2 self-end" />
-
-      <SidebarContent className="border-r">
-        <div className="p-6">
-          <h2 className={`font-bold text-xl text-primary ${isCollapsed ? 'hidden' : ''}`}>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">FF</span>
+          </div>
+          <h2 className={`font-bold text-lg text-primary group-data-[collapsible=icon]:hidden`}>
             FinanceFlow
           </h2>
         </div>
+      </SidebarHeader>
 
+      <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-6">
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
             Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="px-3">
+            <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className={`mb-1 ${
+                    className={`${
                       isActive(item.url)
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'hover:bg-accent'
@@ -64,7 +66,7 @@ export function AppSidebar() {
                   >
                     <NavLink to={item.url} end>
                       <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -72,19 +74,21 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <div className="mt-auto p-4">
-          <Button
-            onClick={signOut}
-            variant="outline"
-            size={isCollapsed ? "icon" : "default"}
-            className="w-full"
-          >
-            <LogOut className="h-4 w-4" />
-            {!isCollapsed && <span className="ml-2">Sair</span>}
-          </Button>
-        </div>
       </SidebarContent>
+
+      <SidebarFooter className="p-4 space-y-4">
+        <UserProfile />
+        
+        <Button
+          onClick={signOut}
+          variant="outline"
+          size={isCollapsed ? "icon" : "default"}
+          className="w-full"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="group-data-[collapsible=icon]:hidden ml-2">Sair</span>
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   )
 }
