@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,10 +9,12 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Camera, User } from 'lucide-react'
+import { validateWhatsAppNumber } from '@/utils/whatsapp'
 
 interface Profile {
   nome: string
   phone: string
+  whatsapp?: string
   avatar_url?: string
 }
 
@@ -39,7 +40,7 @@ export default function Perfil() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('nome, phone, avatar_url')
+        .select('nome, phone, whatsapp, avatar_url')
         .eq('id', user?.id)
         .single()
 
@@ -49,6 +50,7 @@ export default function Perfil() {
         setProfile({
           nome: data.nome || '',
           phone: data.phone || '',
+          whatsapp: data.whatsapp || '',
           avatar_url: data.avatar_url
         })
 
@@ -107,13 +109,43 @@ export default function Perfil() {
     try {
       // Only combine if we have both country code and phone number
       let fullPhone = ''
+      let whatsappId = profile.whatsapp
+      
       if (currentPhoneNumber.trim()) {
         fullPhone = currentCountryCode + currentPhoneNumber.replace(/\D/g, '')
+        
+        // Se o telefone mudou, validar o WhatsApp
+        if (fullPhone !== profile.phone) {
+          console.log('Validando WhatsApp para número alterado:', fullPhone)
+          
+          try {
+            const whatsappValidation = await validateWhatsAppNumber(fullPhone.replace('+', ''))
+            
+            if (!whatsappValidation.exists) {
+              toast({
+                title: "Erro",
+                description: "Este número não possui WhatsApp ativo",
+                variant: "destructive",
+              })
+              setSaving(false)
+              return
+            }
+            
+            whatsappId = whatsappValidation.whatsappId
+          } catch (error: any) {
+            toast({
+              title: "Erro na validação do WhatsApp",
+              description: error.message,
+              variant: "destructive",
+            })
+            setSaving(false)
+            return
+          }
+        }
       }
 
       console.log('Saving profile with phone:', fullPhone)
-      console.log('Country code:', currentCountryCode)
-      console.log('Phone number:', currentPhoneNumber)
+      console.log('Saving profile with whatsapp:', whatsappId)
 
       const { error } = await supabase
         .from('profiles')
@@ -121,6 +153,7 @@ export default function Perfil() {
           id: user?.id,
           nome: profile.nome,
           phone: fullPhone,
+          whatsapp: whatsappId,
           avatar_url: profile.avatar_url,
           updated_at: new Date().toISOString(),
         })
@@ -128,7 +161,7 @@ export default function Perfil() {
       if (error) throw error
       
       // Update local state
-      setProfile(prev => ({ ...prev, phone: fullPhone }))
+      setProfile(prev => ({ ...prev, phone: fullPhone, whatsapp: whatsappId }))
       
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
@@ -247,6 +280,9 @@ export default function Perfil() {
             <div>
               <h3 className="font-medium">{profile.nome || 'Sem nome'}</h3>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
+              {profile.whatsapp && (
+                <p className="text-sm text-green-600">WhatsApp: {profile.whatsapp}</p>
+              )}
             </div>
           </div>
 
