@@ -140,6 +140,14 @@ export default function Perfil() {
       .slice(0, 2)
   }
 
+  const handlePhoneChange = (phone: string) => {
+    setProfile(prev => ({ ...prev, phone }))
+  }
+
+  const handleCountryChange = (country_code: string) => {
+    setProfile(prev => ({ ...prev, country_code }))
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -209,8 +217,8 @@ export default function Perfil() {
                 id="phone"
                 value={profile.phone}
                 countryCode={profile.country_code}
-                onValueChange={(phone) => setProfile(prev => ({ ...prev, phone }))}
-                onCountryChange={(country_code) => setProfile(prev => ({ ...prev, country_code }))}
+                onValueChange={handlePhoneChange}
+                onCountryChange={handleCountryChange}
                 required
               />
             </div>
@@ -218,7 +226,7 @@ export default function Perfil() {
             <Button 
               type="submit" 
               disabled={saving}
-              className="bg-primary hover:bg-primary/90"
+              className="w-full"
             >
               {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

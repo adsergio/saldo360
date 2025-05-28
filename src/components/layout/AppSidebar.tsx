@@ -1,6 +1,6 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, CreditCard, Calendar, User, LogOut } from 'lucide-react'
+import { Home, CreditCard, Calendar, User, LogOut, DollarSign } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -39,7 +39,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">FF</span>
+            <DollarSign className="text-primary-foreground h-5 w-5" />
           </div>
           <h2 className={`font-bold text-lg text-primary group-data-[collapsible=icon]:hidden`}>
             FinanceFlow

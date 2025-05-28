@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import { NavLink } from 'react-router-dom'
 
 interface UserProfile {
   nome: string
@@ -47,17 +48,19 @@ export function UserProfile() {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={profile.avatar_url} />
-        <AvatarFallback className="bg-primary text-primary-foreground">
-          {getInitials(profile.nome)}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-        <p className="text-sm font-medium truncate">{profile.nome}</p>
-        <p className="text-xs text-muted-foreground truncate">{profile.phone}</p>
+    <NavLink to="/perfil" className="block">
+      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={profile.avatar_url} />
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            {getInitials(profile.nome)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+          <p className="text-sm font-medium truncate">{profile.nome}</p>
+          <p className="text-xs text-muted-foreground truncate">{profile.phone}</p>
+        </div>
       </div>
-    </div>
+    </NavLink>
   )
 }
