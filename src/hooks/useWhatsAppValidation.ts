@@ -1,12 +1,11 @@
 
 import { useState } from 'react'
-import { toast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 
 export function useWhatsAppValidation() {
   const [isValidating, setIsValidating] = useState(false)
 
-  const validateWhatsAppNumber = async (phoneNumber: string): Promise<{ isValid: boolean; jid?: string }> => {
+  const validateWhatsAppNumber = async (phoneNumber: string, showToast: boolean = true): Promise<{ isValid: boolean; jid?: string; error?: string }> => {
     setIsValidating(true)
     
     try {
@@ -21,20 +20,17 @@ export function useWhatsAppValidation() {
       if (data.isValid) {
         return { isValid: true, jid: data.jid }
       } else {
-        toast({
-          title: "Número não encontrado",
-          description: "Este número não possui WhatsApp ativo",
-          variant: "destructive",
-        })
-        return { isValid: false }
+        return { 
+          isValid: false, 
+          error: showToast ? "Este número não possui WhatsApp ativo" : undefined 
+        }
       }
     } catch (error: any) {
-      toast({
-        title: "Erro na validação",
-        description: error.message || "Erro ao validar número do WhatsApp",
-        variant: "destructive",
-      })
-      return { isValid: false }
+      console.error('WhatsApp validation error:', error)
+      return { 
+        isValid: false, 
+        error: showToast ? (error.message || "Erro ao validar número do WhatsApp") : undefined 
+      }
     } finally {
       setIsValidating(false)
     }

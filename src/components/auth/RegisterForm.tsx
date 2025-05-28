@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/hooks/useAuth'
 import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
 import { toast } from '@/hooks/use-toast'
-import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 interface RegisterFormProps {
   onToggleMode: () => void
@@ -35,42 +35,8 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   const [countryCode, setCountryCode] = useState('+55')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
-  const [whatsappJid, setWhatsappJid] = useState('')
-  const [whatsappValidated, setWhatsappValidated] = useState(false)
   const { signUp } = useAuth()
   const { validateWhatsAppNumber, isValidating } = useWhatsAppValidation()
-
-  // Auto-validate WhatsApp when phone changes
-  useEffect(() => {
-    const validatePhone = async () => {
-      if (!phone.trim()) {
-        setWhatsappValidated(false)
-        setWhatsappJid('')
-        return
-      }
-
-      // Validate only if phone has minimum length (Brazilian format)
-      const minLength = countryCode === '+55' ? 10 : 8
-      if (phone.length >= minLength) {
-        const fullPhone = `${countryCode.replace('+', '')}${phone}`
-        const { isValid, jid } = await validateWhatsAppNumber(fullPhone)
-        
-        if (isValid) {
-          setWhatsappValidated(true)
-          setWhatsappJid(jid || '')
-        } else {
-          setWhatsappValidated(false)
-          setWhatsappJid('')
-        }
-      } else {
-        setWhatsappValidated(false)
-        setWhatsappJid('')
-      }
-    }
-
-    const debounceTimer = setTimeout(validatePhone, 1000)
-    return () => clearTimeout(debounceTimer)
-  }, [phone, countryCode, validateWhatsAppNumber])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,44 +68,51 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       return
     }
 
-    if (!whatsappValidated) {
-      toast({
-        title: "Erro",
-        description: "O número WhatsApp deve ser validado antes de continuar",
-        variant: "destructive",
-      })
-      return
-    }
-
     setLoading(true)
 
-    const fullPhone = `${countryCode.replace('+', '')}${phone}`
-    const { error } = await signUp(email, password, nome, fullPhone, whatsappJid)
+    try {
+      // Validar WhatsApp apenas no submit
+      const fullPhone = `${countryCode.replace('+', '')}${phone}`
+      console.log('Validating phone:', fullPhone)
+      
+      const { isValid, jid, error } = await validateWhatsAppNumber(fullPhone, false)
+      
+      if (!isValid) {
+        toast({
+          title: "Erro",
+          description: error || "O número WhatsApp deve ser validado antes de continuar",
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
 
-    if (error) {
+      // Prosseguir com o cadastro
+      const { error: signUpError } = await signUp(email, password, nome, fullPhone, jid)
+
+      if (signUpError) {
+        toast({
+          title: "Erro no cadastro",
+          description: signUpError.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Verifique seu email para confirmar a conta.",
+        })
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error)
       toast({
         title: "Erro no cadastro",
-        description: error.message,
+        description: "Erro inesperado. Tente novamente.",
         variant: "destructive",
       })
-    } else {
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Verifique seu email para confirmar a conta.",
-      })
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
-
-  const getPhoneStatus = () => {
-    if (!phone.trim()) return null
-    if (isValidating) return 'validating'
-    if (whatsappValidated) return 'valid'
-    return 'invalid'
-  }
-
-  const phoneStatus = getPhoneStatus()
 
   return (
     <Card className="border-0 shadow-none">
@@ -198,42 +171,19 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="relative flex-1">
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="11999999999"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  required
-                  className="h-11 pr-10"
-                />
-                {phoneStatus && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    {phoneStatus === 'validating' && (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
-                    {phoneStatus === 'valid' && (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    )}
-                    {phoneStatus === 'invalid' && (
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
-                )}
-              </div>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="11999999999"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                required
+                className="h-11"
+              />
             </div>
-            <div className="text-xs space-y-1">
-              <p className="text-muted-foreground">
-                O número será validado automaticamente
-              </p>
-              {whatsappValidated && whatsappJid && (
-                <p className="text-green-600 flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  WhatsApp validado: {whatsappJid}
-                </p>
-              )}
-            </div>
+            <p className="text-xs text-muted-foreground">
+              O número será validado quando você criar a conta
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
@@ -266,12 +216,12 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
           <Button
             type="submit"
             className="w-full h-11 bg-primary hover:bg-primary/90"
-            disabled={loading || !whatsappValidated}
+            disabled={loading || isValidating}
           >
-            {loading ? (
+            {loading || isValidating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Criando conta...
+                {isValidating ? 'Validando WhatsApp...' : 'Criando conta...'}
               </>
             ) : (
               'Criar conta'

@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useWhatsAppValidation } from '@/hooks/useWhatsAppValidation'
 import { toast } from '@/hooks/use-toast'
-import { Camera, User, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Camera, User } from 'lucide-react'
 
 interface Profile {
   nome: string
@@ -27,8 +27,6 @@ export default function Perfil() {
   })
   const [currentCountryCode, setCurrentCountryCode] = useState('+55')
   const [currentPhoneNumber, setCurrentPhoneNumber] = useState('')
-  const [whatsappValidated, setWhatsappValidated] = useState(false)
-  const [currentWhatsappJid, setCurrentWhatsappJid] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -38,45 +36,6 @@ export default function Perfil() {
       fetchProfile()
     }
   }, [user])
-
-  // Auto-validate WhatsApp when phone changes
-  useEffect(() => {
-    const validatePhone = async () => {
-      if (!currentPhoneNumber.trim()) {
-        setWhatsappValidated(false)
-        setCurrentWhatsappJid('')
-        return
-      }
-
-      // Check if it's the same as current profile phone
-      const fullPhone = currentCountryCode + currentPhoneNumber
-      if (fullPhone === profile.phone && profile.whatsapp) {
-        setWhatsappValidated(true)
-        setCurrentWhatsappJid(profile.whatsapp)
-        return
-      }
-
-      // Validate only if phone has minimum length
-      const minLength = currentCountryCode === '+55' ? 10 : 8
-      if (currentPhoneNumber.length >= minLength) {
-        const { isValid, jid } = await validateWhatsAppNumber(fullPhone)
-        
-        if (isValid) {
-          setWhatsappValidated(true)
-          setCurrentWhatsappJid(jid || '')
-        } else {
-          setWhatsappValidated(false)
-          setCurrentWhatsappJid('')
-        }
-      } else {
-        setWhatsappValidated(false)
-        setCurrentWhatsappJid('')
-      }
-    }
-
-    const debounceTimer = setTimeout(validatePhone, 1000)
-    return () => clearTimeout(debounceTimer)
-  }, [currentPhoneNumber, currentCountryCode, profile.phone, profile.whatsapp, validateWhatsAppNumber])
 
   const fetchProfile = async () => {
     try {
@@ -113,12 +72,6 @@ export default function Perfil() {
         })
         setCurrentCountryCode(countryCode)
         setCurrentPhoneNumber(phoneNumber)
-        
-        // Set initial validation state
-        if (data.whatsapp) {
-          setWhatsappValidated(true)
-          setCurrentWhatsappJid(data.whatsapp)
-        }
       }
     } catch (error: any) {
       toast({
@@ -134,39 +87,45 @@ export default function Perfil() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!whatsappValidated) {
-      toast({
-        title: "Erro",
-        description: "O número WhatsApp deve ser validado antes de salvar",
-        variant: "destructive",
-      })
-      return
-    }
-
     setSaving(true)
 
     try {
       // Combine country code and phone number
       const fullPhone = currentCountryCode + currentPhoneNumber
 
-      const { error } = await supabase
+      // Validate WhatsApp only on submit
+      console.log('Validating phone on submit:', fullPhone)
+      const { isValid, jid, error } = await validateWhatsAppNumber(fullPhone, false)
+
+      if (!isValid) {
+        toast({
+          title: "Erro",
+          description: error || "O número WhatsApp deve ser validado antes de salvar",
+          variant: "destructive",
+        })
+        setSaving(false)
+        return
+      }
+
+      const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
           nome: profile.nome,
           phone: fullPhone,
-          whatsapp: currentWhatsappJid,
+          whatsapp: jid,
           avatar_url: profile.avatar_url,
           updated_at: new Date().toISOString(),
         })
 
-      if (error) throw error
+      if (updateError) throw updateError
       
       // Update local state
-      setProfile(prev => ({ ...prev, phone: fullPhone, whatsapp: currentWhatsappJid }))
+      setProfile(prev => ({ ...prev, phone: fullPhone, whatsapp: jid }))
       
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
+      console.error('Profile update error:', error)
       toast({
         title: "Erro ao atualizar perfil",
         description: error.message,
@@ -231,15 +190,6 @@ export default function Perfil() {
   const handleCountryChange = (country_code: string) => {
     setCurrentCountryCode(country_code)
   }
-
-  const getPhoneStatus = () => {
-    if (!currentPhoneNumber.trim()) return null
-    if (isValidating) return 'validating'
-    if (whatsappValidated) return 'valid'
-    return 'invalid'
-  }
-
-  const phoneStatus = getPhoneStatus()
 
   if (loading) {
     return (
@@ -306,48 +256,32 @@ export default function Perfil() {
 
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone WhatsApp</Label>
-              <div className="relative">
-                <PhoneInput
-                  id="phone"
-                  value={currentPhoneNumber}
-                  countryCode={currentCountryCode}
-                  onValueChange={handlePhoneChange}
-                  onCountryChange={handleCountryChange}
-                  required
-                />
-                {phoneStatus && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                    {phoneStatus === 'validating' && (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
-                    {phoneStatus === 'valid' && (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    )}
-                    {phoneStatus === 'invalid' && (
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="text-xs space-y-1">
-                <p className="text-muted-foreground">
-                  O número será validado automaticamente
-                </p>
-                {whatsappValidated && currentWhatsappJid && (
-                  <p className="text-green-600 flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" />
-                    WhatsApp validado: {currentWhatsappJid}
-                  </p>
-                )}
-              </div>
+              <PhoneInput
+                id="phone"
+                value={currentPhoneNumber}
+                countryCode={currentCountryCode}
+                onValueChange={handlePhoneChange}
+                onCountryChange={handleCountryChange}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                O número será validado quando você salvar as alterações
+              </p>
             </div>
 
             <Button 
               type="submit" 
-              disabled={saving || !whatsappValidated}
+              disabled={saving || isValidating}
               className="w-full bg-primary hover:bg-primary/90"
             >
-              {saving ? 'Salvando...' : 'Salvar Alterações'}
+              {saving || isValidating ? (
+                <>
+                  <span className="mr-2">⏳</span>
+                  {isValidating ? 'Validando WhatsApp...' : 'Salvando...'}
+                </>
+              ) : (
+                'Salvar Alterações'
+              )}
             </Button>
           </form>
         </CardContent>
