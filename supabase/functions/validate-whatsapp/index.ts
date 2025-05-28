@@ -24,20 +24,13 @@ serve(async (req) => {
       )
     }
 
-    const evolutionApiUrl = 'https://whatsapp.tidi.com.br'
-    const evolutionApiKey = 'jIr07S3YYZJoXRB1E+b4AZFxTB1yT6ClUmsJBkY0a2BHyuDis+7u8RMX11wylPbJs66Mb3OU57hUz9y5/yn5jA=='
-    const evolutionInstance = 'tidi'
-
-    const options = {
+    const response = await fetch('https://n8n.tidi.com.br/webhook/verifica-zap', {
       method: 'POST',
       headers: {
-        'apikey': evolutionApiKey,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ numbers: [phoneNumber] })
-    }
-
-    const response = await fetch(`${evolutionApiUrl}/chat/whatsappNumbers/${evolutionInstance}`, options)
+      body: JSON.stringify({ number: phoneNumber })
+    })
     
     if (!response.ok) {
       throw new Error('Failed to validate WhatsApp number')
@@ -45,10 +38,10 @@ serve(async (req) => {
 
     const data = await response.json()
     
-    // O EvolutionAPI retorna um array com os números validados
+    // Converter a resposta do novo endpoint para o formato esperado
     const result = {
-      isValid: data.length > 0 && data[0].exists,
-      jid: data.length > 0 ? data[0].jid : null
+      isValid: data.exists === "true" || data.exists === true,
+      jid: data.whatsapp || null
     }
 
     return new Response(
