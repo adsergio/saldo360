@@ -68,34 +68,25 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
 
     setLoading(true)
 
-    try {
-      const fullPhone = `${countryCode.replace('+', '')}${phone}`
-      console.log('Registering with phone:', fullPhone)
+    // Remove o sinal de + do código do país antes de salvar
+    const fullPhone = `${countryCode.replace('+', '')}${phone}`
 
-      const { error: signUpError } = await signUp(email, password, nome, fullPhone)
+    const { error } = await signUp(email, password, nome, fullPhone)
 
-      if (signUpError) {
-        toast({
-          title: "Erro no cadastro",
-          description: signUpError.message,
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Verifique seu email para confirmar a conta.",
-        })
-      }
-    } catch (error: any) {
-      console.error('Registration error:', error)
+    if (error) {
       toast({
         title: "Erro no cadastro",
-        description: "Erro inesperado. Tente novamente.",
+        description: error.message,
         variant: "destructive",
       })
-    } finally {
-      setLoading(false)
+    } else {
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Verifique seu email para confirmar a conta.",
+      })
     }
+
+    setLoading(false)
   }
 
   return (
@@ -162,7 +153,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                 required
-                className="h-11"
+                className="h-11 flex-1"
               />
             </div>
           </div>

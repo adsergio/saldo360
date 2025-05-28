@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -82,14 +83,13 @@ export default function Perfil() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     setSaving(true)
 
     try {
       // Combine country code and phone number
       const fullPhone = currentCountryCode + currentPhoneNumber
 
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
@@ -99,14 +99,13 @@ export default function Perfil() {
           updated_at: new Date().toISOString(),
         })
 
-      if (updateError) throw updateError
+      if (error) throw error
       
       // Update local state
       setProfile(prev => ({ ...prev, phone: fullPhone }))
       
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
-      console.error('Profile update error:', error)
       toast({
         title: "Erro ao atualizar perfil",
         description: error.message,
@@ -252,14 +251,7 @@ export default function Perfil() {
               disabled={saving}
               className="w-full bg-primary hover:bg-primary/90"
             >
-              {saving ? (
-                <>
-                  <span className="mr-2">⏳</span>
-                  Salvando...
-                </>
-              ) : (
-                'Salvar Alterações'
-              )}
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </form>
         </CardContent>
