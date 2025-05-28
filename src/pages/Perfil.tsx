@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,6 @@ import { Camera, User } from 'lucide-react'
 interface Profile {
   nome: string
   phone: string
-  country_code: string
   avatar_url?: string
 }
 
@@ -23,8 +21,9 @@ export default function Perfil() {
   const [profile, setProfile] = useState<Profile>({
     nome: '',
     phone: '',
-    country_code: '+55',
   })
+  const [currentCountryCode, setCurrentCountryCode] = useState('+55')
+  const [currentPhoneNumber, setCurrentPhoneNumber] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -39,19 +38,36 @@ export default function Perfil() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('nome, phone, country_code, avatar_url')
+        .select('nome, phone, avatar_url')
         .eq('id', user?.id)
         .single()
 
       if (error && error.code !== 'PGRST116') throw error
       
       if (data) {
+        // Parse the phone number to separate country code and number
+        const phone = data.phone || ''
+        let countryCode = '+55'
+        let phoneNumber = ''
+        
+        if (phone) {
+          // Extract country code (assumes format like "+5511999999999")
+          const match = phone.match(/^(\+\d{1,4})(.*)$/)
+          if (match) {
+            countryCode = match[1]
+            phoneNumber = match[2]
+          } else {
+            phoneNumber = phone
+          }
+        }
+
         setProfile({
           nome: data.nome || '',
-          phone: data.phone || '',
-          country_code: data.country_code || '+55',
+          phone: phone,
           avatar_url: data.avatar_url
         })
+        setCurrentCountryCode(countryCode)
+        setCurrentPhoneNumber(phoneNumber)
       }
     } catch (error: any) {
       toast({
@@ -69,18 +85,24 @@ export default function Perfil() {
     setSaving(true)
 
     try {
+      // Combine country code and phone number
+      const fullPhone = currentCountryCode + currentPhoneNumber
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
           nome: profile.nome,
-          phone: profile.phone,
-          country_code: profile.country_code,
+          phone: fullPhone,
           avatar_url: profile.avatar_url,
           updated_at: new Date().toISOString(),
         })
 
       if (error) throw error
+      
+      // Update local state
+      setProfile(prev => ({ ...prev, phone: fullPhone }))
+      
       toast({ title: "Perfil atualizado com sucesso!" })
     } catch (error: any) {
       toast({
@@ -141,11 +163,11 @@ export default function Perfil() {
   }
 
   const handlePhoneChange = (phone: string) => {
-    setProfile(prev => ({ ...prev, phone }))
+    setCurrentPhoneNumber(phone)
   }
 
   const handleCountryChange = (country_code: string) => {
-    setProfile(prev => ({ ...prev, country_code }))
+    setCurrentCountryCode(country_code)
   }
 
   if (loading) {
@@ -215,8 +237,8 @@ export default function Perfil() {
               <Label htmlFor="phone">Telefone</Label>
               <PhoneInput
                 id="phone"
-                value={profile.phone}
-                countryCode={profile.country_code}
+                value={currentPhoneNumber}
+                countryCode={currentCountryCode}
                 onValueChange={handlePhoneChange}
                 onCountryChange={handleCountryChange}
                 required
