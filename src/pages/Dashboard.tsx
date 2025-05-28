@@ -214,69 +214,69 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+            <CardTitle className="text-sm font-medium">
               Total de Receitas
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+            <div className="text-2xl font-bold text-green-600">
               {formatCurrency(stats.totalReceitas)}
             </div>
-            <p className="text-xs text-green-600 dark:text-green-400">
+            <p className="text-xs text-muted-foreground">
               Mês atual
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-red-200 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
+        <Card className="border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">
+            <CardTitle className="text-sm font-medium">
               Total de Despesas
             </CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-700 dark:text-red-300">
+            <div className="text-2xl font-bold text-red-600">
               {formatCurrency(stats.totalDespesas)}
             </div>
-            <p className="text-xs text-red-600 dark:text-red-400">
+            <p className="text-xs text-muted-foreground">
               Mês atual
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">
+            <CardTitle className="text-sm font-medium">
               Saldo Atual
             </CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.saldo >= 0 ? 'text-primary' : 'text-red-700 dark:text-red-400'}`}>
+            <div className={`text-2xl font-bold ${stats.saldo >= 0 ? 'text-primary' : 'text-red-600'}`}>
               {formatCurrency(stats.saldo)}
             </div>
-            <p className="text-xs text-primary">
+            <p className="text-xs text-muted-foreground">
               Receitas - Despesas
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+        <Card className="border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+            <CardTitle className="text-sm font-medium">
               Lembretes Ativos
             </CardTitle>
             <Calendar className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+            <div className="text-2xl font-bold text-purple-600">
               {stats.lembretesCount}
             </div>
-            <p className="text-xs text-purple-600 dark:text-purple-400">
+            <p className="text-xs text-muted-foreground">
               Este mês
             </p>
           </CardContent>
