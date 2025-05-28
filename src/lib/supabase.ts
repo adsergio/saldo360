@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://alqzqapccyclmffdfmlc.supabase.co'
@@ -14,6 +13,7 @@ export type Database = {
           id: string
           username: string | null
           nome: string | null
+          email: string | null
           avatar_url: string | null
           created_at: string
           updated_at: string
@@ -24,6 +24,7 @@ export type Database = {
           id: string
           username?: string | null
           nome?: string | null
+          email?: string | null
           avatar_url?: string | null
           created_at?: string
           updated_at?: string
@@ -34,6 +35,7 @@ export type Database = {
           id?: string
           username?: string | null
           nome?: string | null
+          email?: string | null
           avatar_url?: string | null
           created_at?: string
           updated_at?: string

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
@@ -77,17 +76,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Se a conta foi criada com sucesso, criar o perfil
       if (data.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          nome,
-          phone: phone || null,
-          whatsapp: whatsappId || null,
-          updated_at: new Date().toISOString(),
-        })
+        // Verificar se o perfil já existe antes de tentar criar
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .single()
 
-        if (profileError) {
-          console.error('Erro ao criar perfil:', profileError)
-          return { error: profileError }
+        if (!existingProfile) {
+          const { error: profileError } = await supabase.from('profiles').insert({
+            id: data.user.id,
+            nome,
+            email: email,
+            phone: phone || null,
+            whatsapp: whatsappId || null,
+            updated_at: new Date().toISOString(),
+          })
+
+          if (profileError) {
+            console.error('Erro ao criar perfil:', profileError)
+            return { error: profileError }
+          }
+        } else {
+          console.log('Perfil já existe, atualizando dados')
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              nome,
+              email: email,
+              phone: phone || null,
+              whatsapp: whatsappId || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', data.user.id)
+
+          if (updateError) {
+            console.error('Erro ao atualizar perfil:', updateError)
+            return { error: updateError }
+          }
         }
       }
 
