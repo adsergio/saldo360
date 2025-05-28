@@ -56,13 +56,13 @@ export default function Auth() {
       {/* Right side - Forms */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         {/* Header with Logo and Theme Toggle */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+        <div className="absolute top-4 left-4 right-4 flex justify-end items-center">
           
           {/* Theme Toggle */}
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-md mt-16 justify-center">
+        <div className="grid w-full max-w-md mt-16 justify-center gap-4">
           <img 
             src={getLogoSrc()} 
             alt="FinanceFlow" 
