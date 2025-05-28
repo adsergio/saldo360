@@ -63,11 +63,13 @@ export default function Auth() {
         </div>
 
         <div className="grid w-full max-w-md mt-16 justify-center gap-4">
-          <img 
-            src={getLogoSrc()} 
-            alt="FinanceFlow" 
-            className="h-8 w-auto"
-          />
+          <div>
+            <img 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
+              className="h-8 w-auto"
+            />
+          </div>
           
           {mode === 'login' && (
             <LoginForm

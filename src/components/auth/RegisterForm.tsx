@@ -91,7 +91,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center pb-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">
+        <h1 className="text-lg font-bold text-slate-800 mb-2">
           Criar Conta
         </h1>
         <p className="text-base text-muted-foreground">
