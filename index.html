@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +9,21 @@
     <meta name="author" content="Lovable" />
     
     <link rel="icon" href="/lovable-uploads/a825564f-6c05-44c5-b5c9-f306668546b1.png" type="image/png">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#16a34a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="financeFlow" />
+    <meta name="msapplication-TileColor" content="#16a34a" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/lovable-uploads/a825564f-6c05-44c5-b5c9-f306668546b1.png" />
 
     <meta property="og:title" content="financeFlow | Seu assistente financeiro" />
     <meta property="og:description" content="Gerencie suas finanças de forma simples e inteligente" />
@@ -25,5 +40,20 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
