@@ -60,7 +60,7 @@ export default function Auth() {
           <ThemeToggle />
         </div>
 
-        <div className="grid w-full max-w-md mt-16 justify-center gap-4">
+        <div className="grid w-full mt-16 justify-center gap-4">
           <div>
             <img 
               src={getLogoSrc()} 
