@@ -42,6 +42,10 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     setLoading(false)
   }
 
+  const handleSubscribeClick = () => {
+    window.open('https://sandbox.asaas.com/c/6yc5f1jlcoe21w8b', '_blank')
+  }
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-start py-8">
@@ -98,7 +102,15 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         </Button>
       </form>
       
-      <div className="mt-6 text-center">
+      <div className="mt-6 space-y-4 text-center">
+        <Button
+          onClick={handleSubscribeClick}
+          variant="outline"
+          className="w-full h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+          Adquira já
+        </Button>
+        
         <Button
           variant="link"
           onClick={onForgotPassword}
