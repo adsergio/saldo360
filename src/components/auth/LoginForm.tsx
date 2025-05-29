@@ -47,7 +47,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full mx-auto">
       <div className="text-start py-8">
         <h1 className="text-lg font-bold text-slate-800 mb-2 dark:text-slate-300">
           Bem-vindo de volta
