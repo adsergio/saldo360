@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -75,8 +74,8 @@ export default function Landing() {
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <img 
-              src={getLogoSrc()} 
-              alt="FinanceFlow" 
+              src="/lovable-uploads/07af976e-aaeb-4c23-8af4-03689ff8bda4.png" 
+              alt="finzap" 
               className="h-8 w-auto"
             />
           </div>
