@@ -8,11 +8,10 @@ import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
 
 interface LoginFormProps {
-  onToggleMode: () => void
   onForgotPassword: () => void
 }
 
-export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
+export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,18 +21,21 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
     e.preventDefault()
     setLoading(true)
 
-    const { error } = await signIn(email, password)
+    try {
+      const { error } = await signIn(email, password)
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
       toast({
         title: "Erro no login",
         description: error.message,
         variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!",
       })
     }
 
@@ -44,10 +46,10 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
     <div className="w-full max-w-md mx-auto">
       <div className="text-start py-8">
         <h1 className="text-lg font-bold text-slate-800 mb-2 dark:text-slate-300">
-          Acessar
+          Bem-vindo de volta
         </h1>
         <p className="text-base text-muted-foreground">
-          Entre na sua conta para acessar o seu sistema financeiro pessoal.
+          Entre na sua conta para continuar
         </p>
       </div>
       
@@ -96,24 +98,14 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
         </Button>
       </form>
       
-      <div className="mt-6 text-center space-y-4">
+      <div className="mt-6 text-center">
         <Button
           variant="link"
           onClick={onForgotPassword}
           className="text-sm text-muted-foreground hover:text-primary"
         >
-          Esqueci minha senha
+          Esqueceu sua senha?
         </Button>
-        <div className="text-sm text-muted-foreground">
-          Não tem uma conta?{' '}
-          <Button
-            variant="link"
-            onClick={onToggleMode}
-            className="p-0 text-primary hover:text-primary/80"
-          >
-            Criar conta
-          </Button>
-        </div>
       </div>
     </div>
   )

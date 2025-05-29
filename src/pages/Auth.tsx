@@ -1,15 +1,13 @@
 
 import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
-import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/hooks/useTheme'
 
-type AuthMode = 'login' | 'register' | 'forgot'
+type AuthMode = 'login' | 'forgot'
 
 const authImages = {
-  register: '/lovable-uploads/3e6efeb8-4963-4a6b-9548-e1ce00ab987b.png',
   login: '/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png',
   forgot: '/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png'
 }
@@ -73,12 +71,8 @@ export default function Auth() {
           
           {mode === 'login' && (
             <LoginForm
-              onToggleMode={() => setMode('register')}
               onForgotPassword={() => setMode('forgot')}
             />
-          )}
-          {mode === 'register' && (
-            <RegisterForm onToggleMode={() => setMode('login')} />
           )}
           {mode === 'forgot' && (
             <ForgotPasswordForm onBack={() => setMode('login')} />
