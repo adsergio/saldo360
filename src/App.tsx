@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Auth from "./pages/Auth";
-import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
 import Lembretes from "./pages/Lembretes";
@@ -55,12 +54,12 @@ function AppRoutes() {
   return (
     <Routes>
       <Route 
-        path="/" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Landing />} 
-      />
-      <Route 
         path="/auth" 
         element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
+      />
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} 
       />
       <Route
         path="/dashboard"

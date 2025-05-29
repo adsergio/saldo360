@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useTheme } from '@/hooks/useTheme'
 
 type AuthMode = 'login' | 'forgot'
 
@@ -13,6 +14,22 @@ const authImages = {
 
 export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login')
+  const { theme } = useTheme()
+
+  // Determine which logo to use based on theme
+  const getLogoSrc = () => {
+    if (theme === 'dark') {
+      return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
+    } else if (theme === 'light') {
+      return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
+    } else {
+      // System theme - check actual computed theme
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      return isDark 
+        ? '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        : '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
+    }
+  }
 
   return (
     <div className="h-screen flex bg-background p-6">
@@ -46,8 +63,8 @@ export default function Auth() {
         <div className="grid w-full mt-16 justify-center gap-4">
           <div>
             <img 
-              src="/lovable-uploads/07af976e-aaeb-4c23-8af4-03689ff8bda4.png" 
-              alt="finzap" 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
               className="h-8 w-auto"
             />
           </div>
