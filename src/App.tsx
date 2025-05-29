@@ -55,12 +55,12 @@ function AppRoutes() {
   return (
     <Routes>
       <Route 
-        path="/auth" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
+        path="/" 
+        element={user ? <Navigate to="/dashboard" replace /> : <Landing />} 
       />
       <Route 
-        path="/" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} 
+        path="/auth" 
+        element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
       />
       <Route
         path="/dashboard"
