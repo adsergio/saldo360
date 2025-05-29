@@ -12,7 +12,6 @@ import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
 import Lembretes from "./pages/Lembretes";
 import Perfil from "./pages/Perfil";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,14 +90,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Perfil />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/adm"
-        element={
-          <ProtectedRoute>
-            <Admin />
           </ProtectedRoute>
         }
       />

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://alqzqapccyclmffdfmlc.supabase.co'
@@ -20,7 +19,6 @@ export type Database = {
           updated_at: string
           phone: string | null
           whatsapp: string | null
-          ativo: boolean | null
         }
         Insert: {
           id: string
@@ -32,7 +30,6 @@ export type Database = {
           updated_at?: string
           phone?: string | null
           whatsapp?: string | null
-          ativo?: boolean | null
         }
         Update: {
           id?: string
@@ -44,7 +41,6 @@ export type Database = {
           updated_at?: string
           phone?: string | null
           whatsapp?: string | null
-          ativo?: boolean | null
         }
       }
       transacoes: {
