@@ -43,7 +43,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-slate-300">
+    <div className="w-full max-w-md mx-auto">
       <div className="text-start py-8">
         <h1 className="text-lg font-bold text-slate-800 mb-2 dark:text-slate-300">
           Bem-vindo de volta
@@ -53,7 +53,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         </p>
       </div>
       
-      <form onSubmit={handleSubmit} className="grid w-full space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
             Email
@@ -65,7 +65,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-11 w-full"
+            className="h-11"
           />
         </div>
         <div className="space-y-2">
@@ -79,7 +79,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-11 w-full"
+            className="h-11"
           />
         </div>
         <Button
