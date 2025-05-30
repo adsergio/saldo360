@@ -27,6 +27,14 @@ export function TransactionFilters({
   const { categories } = useCategories();
   const hasActiveFilters = searchTerm || typeFilter || categoryFilter;
 
+  const handleTypeChange = (value: string) => {
+    onTypeFilterChange(value === 'all' ? '' : value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    onCategoryFilterChange(value === 'all' ? '' : value);
+  };
+
   return (
     <div className="bg-card rounded-lg border p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -50,23 +58,23 @@ export function TransactionFilters({
           />
         </div>
         
-        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+        <Select value={typeFilter || 'all'} onValueChange={handleTypeChange}>
           <SelectTrigger>
             <SelectValue placeholder="Filtrar por tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="receita">Receita</SelectItem>
             <SelectItem value="despesa">Despesa</SelectItem>
           </SelectContent>
         </Select>
         
-        <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+        <Select value={categoryFilter || 'all'} onValueChange={handleCategoryChange}>
           <SelectTrigger>
             <SelectValue placeholder="Filtrar por categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.nome}
