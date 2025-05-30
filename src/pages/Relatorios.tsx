@@ -1,14 +1,14 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { FileText, Download } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { useReports } from '@/hooks/useReports'
 import { useAuth } from '@/hooks/useAuth'
 import { ReportFiltersComponent } from '@/components/reports/ReportFilters'
 import { ReportSummary } from '@/components/reports/ReportSummary'
 import { ReportTable } from '@/components/reports/ReportTable'
 import { ReportChart } from '@/components/reports/ReportChart'
+import { PDFExportOptions, PDFExportOptions as PDFOptions } from '@/components/reports/PDFExportOptions'
 import { toast } from '@/hooks/use-toast'
 import { generatePDFReport } from '@/utils/pdfGenerator'
 
@@ -27,7 +27,7 @@ export default function Relatorios() {
     })
   }
 
-  const generatePDF = async () => {
+  const generatePDF = async (options: PDFOptions) => {
     setIsGeneratingPDF(true)
     
     try {
@@ -38,7 +38,7 @@ export default function Relatorios() {
         userName: user?.user_metadata?.nome || user?.email || 'Usuário'
       }
 
-      generatePDFReport(reportData)
+      generatePDFReport(reportData, options)
       
       toast({
         title: "PDF gerado com sucesso!",
@@ -82,23 +82,11 @@ export default function Relatorios() {
             Análises personalizadas das suas transações
           </p>
         </div>
-        <Button 
-          onClick={generatePDF}
-          disabled={isGeneratingPDF || transactions.length === 0}
-          className="bg-primary hover:bg-primary/90"
-        >
-          {isGeneratingPDF ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Gerando...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Gerar PDF
-            </>
-          )}
-        </Button>
+        <PDFExportOptions
+          onExport={generatePDF}
+          isGenerating={isGeneratingPDF}
+          disabled={transactions.length === 0}
+        />
       </div>
 
       <ReportFiltersComponent
