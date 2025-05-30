@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Search, Filter, X } from 'lucide-react'
+import { useCategories } from '@/hooks/useCategories'
 
 interface TransactionFiltersProps {
   searchTerm: string
@@ -23,6 +24,7 @@ export function TransactionFilters({
   onCategoryFilterChange,
   onClearFilters
 }: TransactionFiltersProps) {
+  const { categories, isLoading } = useCategories()
   const hasFilters = searchTerm || typeFilter || categoryFilter
 
   const handleTypeChange = (value: string) => {
@@ -57,21 +59,17 @@ export function TransactionFilters({
         </SelectContent>
       </Select>
 
-      <Select value={categoryFilter || 'all'} onValueChange={handleCategoryChange}>
+      <Select value={categoryFilter || 'all'} onValueChange={handleCategoryChange} disabled={isLoading}>
         <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Categoria" />
+          <SelectValue placeholder={isLoading ? "Carregando..." : "Categoria"} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todas categorias</SelectItem>
-          <SelectItem value="alimentacao">Alimentação</SelectItem>
-          <SelectItem value="transporte">Transporte</SelectItem>
-          <SelectItem value="moradia">Moradia</SelectItem>
-          <SelectItem value="saude">Saúde</SelectItem>
-          <SelectItem value="educacao">Educação</SelectItem>
-          <SelectItem value="lazer">Lazer</SelectItem>
-          <SelectItem value="salario">Salário</SelectItem>
-          <SelectItem value="investimentos">Investimentos</SelectItem>
-          <SelectItem value="outros">Outros</SelectItem>
+          {categories?.map((categoria) => (
+            <SelectItem key={categoria.id} value={categoria.id}>
+              {categoria.nome}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 

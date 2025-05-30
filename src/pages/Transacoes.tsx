@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,10 @@ import { Badge } from '@/components/ui/badge'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
+import { CategorySelector } from '@/components/transactions/CategorySelector'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useCategories } from '@/hooks/useCategories'
 import { toast } from '@/hooks/use-toast'
 import { Plus, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
@@ -25,12 +28,17 @@ interface Transacao {
   valor: number | null
   detalhes: string | null
   tipo: string | null
-  categoria: string | null
+  category_id: string
   userId: string | null
+  categorias?: {
+    id: string
+    nome: string
+  }
 }
 
 export default function Transacoes() {
   const { user } = useAuth()
+  const { categories } = useCategories()
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -47,7 +55,7 @@ export default function Transacoes() {
     valor: 0,
     detalhes: '',
     tipo: '',
-    categoria: '',
+    category_id: '',
   })
 
   useEffect(() => {
@@ -62,7 +70,7 @@ export default function Transacoes() {
       const matchesSearch = !searchTerm || 
         (transacao.estabelecimento?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
       const matchesType = !typeFilter || transacao.tipo === typeFilter
-      const matchesCategory = !categoryFilter || transacao.categoria === categoryFilter
+      const matchesCategory = !categoryFilter || transacao.category_id === categoryFilter
       
       return matchesSearch && matchesType && matchesCategory
     })
@@ -89,7 +97,13 @@ export default function Transacoes() {
     try {
       const { data, error } = await supabase
         .from('transacoes')
-        .select('*')
+        .select(`
+          *,
+          categorias (
+            id,
+            nome
+          )
+        `)
         .eq('userId', user?.id)
         .order('created_at', { ascending: false })
 
@@ -115,6 +129,19 @@ export default function Transacoes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validação: verificar se a categoria selecionada pertence ao usuário
+    if (formData.category_id) {
+      const categoryBelongsToUser = categories?.some(cat => cat.id === formData.category_id)
+      if (!categoryBelongsToUser) {
+        toast({
+          title: "Erro de validação",
+          description: "A categoria selecionada não é válida para este usuário.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
     try {
       const transacaoData = {
         quando: formData.quando,
@@ -122,7 +149,7 @@ export default function Transacoes() {
         valor: formData.valor,
         detalhes: formData.detalhes,
         tipo: formData.tipo,
-        categoria: formData.categoria,
+        category_id: formData.category_id,
         userId: user?.id,
       }
 
@@ -151,7 +178,7 @@ export default function Transacoes() {
         valor: 0,
         detalhes: '',
         tipo: '',
-        categoria: '',
+        category_id: '',
       })
       fetchTransacoes()
     } catch (error: any) {
@@ -171,7 +198,7 @@ export default function Transacoes() {
       valor: transacao.valor || 0,
       detalhes: transacao.detalhes || '',
       tipo: transacao.tipo || '',
-      categoria: transacao.categoria || '',
+      category_id: transacao.category_id || '',
     })
     setDialogOpen(true)
   }
@@ -304,22 +331,11 @@ export default function Transacoes() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="categoria">Categoria</Label>
-                  <Select value={formData.categoria} onValueChange={(value) => setFormData({...formData, categoria: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alimentacao">Alimentação</SelectItem>
-                      <SelectItem value="transporte">Transporte</SelectItem>
-                      <SelectItem value="moradia">Moradia</SelectItem>
-                      <SelectItem value="saude">Saúde</SelectItem>
-                      <SelectItem value="educacao">Educação</SelectItem>
-                      <SelectItem value="lazer">Lazer</SelectItem>
-                      <SelectItem value="salario">Salário</SelectItem>
-                      <SelectItem value="investimentos">Investimentos</SelectItem>
-                      <SelectItem value="outros">Outros</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <CategorySelector
+                    value={formData.category_id}
+                    onValueChange={(value) => setFormData({...formData, category_id: value})}
+                    placeholder="Selecione a categoria"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="quando">Data</Label>
@@ -412,8 +428,8 @@ export default function Transacoes() {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {transacao.categoria && (
-                        <p>Categoria: {transacao.categoria}</p>
+                      {transacao.categorias && (
+                        <p>Categoria: {transacao.categorias.nome}</p>
                       )}
                       {transacao.quando && (
                         <p>Data: {formatDate(transacao.quando)}</p>
