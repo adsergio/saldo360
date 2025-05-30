@@ -15,7 +15,7 @@ interface CategorySelectorProps {
 
 export function CategorySelector({ selectedCategories, onCategoriesChange }: CategorySelectorProps) {
   const [open, setOpen] = useState(false);
-  const { categories } = useCategories();
+  const { categories, isLoading } = useCategories();
 
   const handleCategoryToggle = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -25,9 +25,25 @@ export function CategorySelector({ selectedCategories, onCategoriesChange }: Cat
     }
   };
 
-  const selectedCategoryNames = categories
+  // Ensure categories is always an array
+  const categoriesList = categories || [];
+  
+  const selectedCategoryNames = categoriesList
     .filter(cat => selectedCategories.includes(cat.id))
     .map(cat => cat.nome);
+
+  if (isLoading) {
+    return (
+      <Button
+        variant="outline"
+        className="w-full justify-between"
+        disabled
+      >
+        Carregando categorias...
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -52,7 +68,7 @@ export function CategorySelector({ selectedCategories, onCategoriesChange }: Cat
             <CommandInput placeholder="Buscar categoria..." />
             <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
             <CommandGroup>
-              {categories.map((category) => (
+              {categoriesList.map((category) => (
                 <CommandItem
                   key={category.id}
                   onSelect={() => handleCategoryToggle(category.id)}
