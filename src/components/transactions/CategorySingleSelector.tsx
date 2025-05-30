@@ -16,13 +16,14 @@ export function CategorySingleSelector({ selectedCategory, onCategoryChange }: C
   const [open, setOpen] = useState(false);
   const { categories, isLoading } = useCategories();
 
-  // Ensure categories is always an array
+  // Garante que categories é sempre um array, mesmo durante o loading
   const categoriesList = categories || [];
   
   const selectedCategoryName = categoriesList
     .find(cat => cat.id === selectedCategory)?.nome || '';
 
-  if (isLoading) {
+  // Mostra loading state
+  if (isLoading || !categories) {
     return (
       <Button
         variant="outline"
