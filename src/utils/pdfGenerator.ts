@@ -40,6 +40,7 @@ export const generatePDFReport = (data: PDFReportData, options: PDFExportOptions
   const pageHeight = doc.internal.pageSize.height
   const margin = 20
   let yPosition = margin
+  let currentPage = 1
   const primaryColor = [66, 139, 202] // Azul da plataforma
   const successColor = [34, 197, 94] // Verde para receitas
   const dangerColor = [239, 68, 68] // Vermelho para despesas
@@ -48,6 +49,7 @@ export const generatePDFReport = (data: PDFReportData, options: PDFExportOptions
   const checkPageBreak = (requiredSpace: number) => {
     if (yPosition + requiredSpace > pageHeight - margin) {
       doc.addPage()
+      currentPage++
       yPosition = margin
       return true
     }
@@ -56,10 +58,9 @@ export const generatePDFReport = (data: PDFReportData, options: PDFExportOptions
 
   // Função para adicionar rodapé
   const addFooter = () => {
-    const pageNumber = doc.internal.getCurrentPageInfo().pageNumber
     doc.setFontSize(8)
     doc.setTextColor(128, 128, 128)
-    doc.text(`Página ${pageNumber}`, pageWidth - margin, pageHeight - 10, { align: 'right' })
+    doc.text(`Página ${currentPage}`, pageWidth - margin, pageHeight - 10, { align: 'right' })
     doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, margin, pageHeight - 10)
   }
 
@@ -316,6 +317,7 @@ export const generatePDFReport = (data: PDFReportData, options: PDFExportOptions
       },
       margin: { left: margin, right: margin },
       didDrawPage: () => {
+        currentPage++
         addFooter()
       }
     })
