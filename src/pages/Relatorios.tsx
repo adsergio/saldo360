@@ -10,6 +10,7 @@ import { ReportSummary } from '@/components/reports/ReportSummary'
 import { ReportTable } from '@/components/reports/ReportTable'
 import { ReportChart } from '@/components/reports/ReportChart'
 import { toast } from '@/hooks/use-toast'
+import { generatePDFReport } from '@/utils/pdfGenerator'
 
 export default function Relatorios() {
   const { user } = useAuth()
@@ -30,15 +31,21 @@ export default function Relatorios() {
     setIsGeneratingPDF(true)
     
     try {
-      // Here we would integrate with a PDF generation library
-      // For now, we'll show a success message
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate PDF generation
+      const reportData = {
+        transactions,
+        summaryData,
+        filters,
+        userName: user?.user_metadata?.nome || user?.email || 'Usuário'
+      }
+
+      generatePDFReport(reportData)
       
       toast({
         title: "PDF gerado com sucesso!",
         description: "O relatório foi exportado em formato PDF.",
       })
     } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
       toast({
         title: "Erro ao gerar PDF",
         description: "Ocorreu um erro ao exportar o relatório.",
