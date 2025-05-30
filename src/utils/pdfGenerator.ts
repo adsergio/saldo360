@@ -1,8 +1,15 @@
 
 import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import 'jspdf-autotable'
 import { formatCurrency } from './currency'
 import { ReportTransaction } from '@/hooks/useReports'
+
+// Estendendo o tipo jsPDF para incluir autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF
+  }
+}
 
 interface PDFReportData {
   transactions: ReportTransaction[]
@@ -95,7 +102,7 @@ export const generatePDFReport = (data: PDFReportData) => {
       `${transaction.tipo === 'receita' ? '+' : '-'}${formatCurrency(Math.abs(transaction.valor || 0))}`
     ])
 
-    autoTable(doc, {
+    doc.autoTable({
       head: [['Data', 'Estabelecimento', 'Categoria', 'Tipo', 'Valor']],
       body: tableData,
       startY: yPosition,
