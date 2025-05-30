@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
 import Lembretes from "./pages/Lembretes";
+import Categorias from "./pages/Categorias";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +75,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Transacoes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categorias"
+        element={
+          <ProtectedRoute>
+            <Categorias />
           </ProtectedRoute>
         }
       />

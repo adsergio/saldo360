@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://alqzqapccyclmffdfmlc.supabase.co'
@@ -102,6 +103,32 @@ export type Database = {
           descricao?: string | null
           data?: string | null
           valor?: number | null
+        }
+      }
+      categorias: {
+        Row: {
+          id: string
+          userid: string
+          nome: string
+          tags: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          userid: string
+          nome: string
+          tags?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          userid?: string
+          nome?: string
+          tags?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
