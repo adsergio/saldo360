@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
@@ -197,6 +197,25 @@ export default function Transacoes() {
     }
   }
 
+  const handleDeleteAll = async () => {
+    try {
+      const { error } = await supabase
+        .from('transacoes')
+        .delete()
+        .eq('userId', user?.id)
+
+      if (error) throw error
+      toast({ title: "Todas as transações foram excluídas com sucesso!" })
+      fetchTransacoes()
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir transações",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
@@ -208,99 +227,125 @@ export default function Transacoes() {
           <h2 className="text-3xl font-bold tracking-tight">Transações</h2>
           <p className="text-muted-foreground">Gerencie suas receitas e despesas</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Transação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingTransaction ? 'Editar Transação' : 'Nova Transação'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingTransaction 
-                  ? 'Faça as alterações necessárias na transação.' 
-                  : 'Adicione uma nova receita ou despesa.'}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          {transacoes.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remover Todas
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remover todas as transações</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Isso irá remover permanentemente todas as suas transações.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Remover Todas
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Transação
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingTransaction ? 'Editar Transação' : 'Nova Transação'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingTransaction 
+                    ? 'Faça as alterações necessárias na transação.' 
+                    : 'Adicione uma nova receita ou despesa.'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo">Tipo</Label>
+                    <Select value={formData.tipo} onValueChange={(value) => setFormData({...formData, tipo: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="receita">Receita</SelectItem>
+                        <SelectItem value="despesa">Despesa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="valor">Valor</Label>
+                    <CurrencyInput
+                      value={formData.valor}
+                      onChange={(value) => setFormData({...formData, valor: value})}
+                      required
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo</Label>
-                  <Select value={formData.tipo} onValueChange={(value) => setFormData({...formData, tipo: value})}>
+                  <Label htmlFor="estabelecimento">Estabelecimento</Label>
+                  <Input
+                    id="estabelecimento"
+                    placeholder="Ex: Supermercado, Salário, etc."
+                    value={formData.estabelecimento}
+                    onChange={(e) => setFormData({...formData, estabelecimento: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="categoria">Categoria</Label>
+                  <Select value={formData.categoria} onValueChange={(value) => setFormData({...formData, categoria: value})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
+                      <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="receita">Receita</SelectItem>
-                      <SelectItem value="despesa">Despesa</SelectItem>
+                      <SelectItem value="alimentacao">Alimentação</SelectItem>
+                      <SelectItem value="transporte">Transporte</SelectItem>
+                      <SelectItem value="moradia">Moradia</SelectItem>
+                      <SelectItem value="saude">Saúde</SelectItem>
+                      <SelectItem value="educacao">Educação</SelectItem>
+                      <SelectItem value="lazer">Lazer</SelectItem>
+                      <SelectItem value="salario">Salário</SelectItem>
+                      <SelectItem value="investimentos">Investimentos</SelectItem>
+                      <SelectItem value="outros">Outros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="valor">Valor</Label>
-                  <CurrencyInput
-                    value={formData.valor}
-                    onChange={(value) => setFormData({...formData, valor: value})}
-                    required
+                  <Label htmlFor="quando">Data</Label>
+                  <Input
+                    id="quando"
+                    type="date"
+                    value={formData.quando}
+                    onChange={(e) => setFormData({...formData, quando: e.target.value})}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="estabelecimento">Estabelecimento</Label>
-                <Input
-                  id="estabelecimento"
-                  placeholder="Ex: Supermercado, Salário, etc."
-                  value={formData.estabelecimento}
-                  onChange={(e) => setFormData({...formData, estabelecimento: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoria</Label>
-                <Select value={formData.categoria} onValueChange={(value) => setFormData({...formData, categoria: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alimentacao">Alimentação</SelectItem>
-                    <SelectItem value="transporte">Transporte</SelectItem>
-                    <SelectItem value="moradia">Moradia</SelectItem>
-                    <SelectItem value="saude">Saúde</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="lazer">Lazer</SelectItem>
-                    <SelectItem value="salario">Salário</SelectItem>
-                    <SelectItem value="investimentos">Investimentos</SelectItem>
-                    <SelectItem value="outros">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="quando">Data</Label>
-                <Input
-                  id="quando"
-                  type="date"
-                  value={formData.quando}
-                  onChange={(e) => setFormData({...formData, quando: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="detalhes">Detalhes</Label>
-                <Textarea
-                  id="detalhes"
-                  placeholder="Informações adicionais..."
-                  value={formData.detalhes}
-                  onChange={(e) => setFormData({...formData, detalhes: e.target.value})}
-                />
-              </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                {editingTransaction ? 'Atualizar' : 'Adicionar'} Transação
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                  <Label htmlFor="detalhes">Detalhes</Label>
+                  <Textarea
+                    id="detalhes"
+                    placeholder="Informações adicionais..."
+                    value={formData.detalhes}
+                    onChange={(e) => setFormData({...formData, detalhes: e.target.value})}
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  {editingTransaction ? 'Atualizar' : 'Adicionar'} Transação
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <TransactionSummaryCards 

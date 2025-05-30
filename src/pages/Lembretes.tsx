@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -136,6 +136,25 @@ export default function Lembretes() {
     }
   }
 
+  const handleDeleteAll = async () => {
+    try {
+      const { error } = await supabase
+        .from('lembretes')
+        .delete()
+        .eq('userId', user?.id)
+
+      if (error) throw error
+      toast({ title: "Todos os lembretes foram excluídos com sucesso!" })
+      fetchLembretes()
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir lembretes",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -178,64 +197,90 @@ export default function Lembretes() {
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">Lembretes</h2>
           <p className="text-gray-600">Gerencie seus lembretes de pagamentos e compromissos</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Lembrete
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingLembrete ? 'Editar Lembrete' : 'Novo Lembrete'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingLembrete 
-                  ? 'Faça as alterações necessárias no lembrete.' 
-                  : 'Adicione um novo lembrete para não esquecer pagamentos importantes.'}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  placeholder="Ex: Pagar conta de luz, Aniversário da Maria..."
-                  value={formData.descricao}
-                  onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          {lembretes.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remover Todos
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remover todos os lembretes</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Isso irá remover permanentemente todos os seus lembretes.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Remover Todos
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Lembrete
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingLembrete ? 'Editar Lembrete' : 'Novo Lembrete'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingLembrete 
+                    ? 'Faça as alterações necessárias no lembrete.' 
+                    : 'Adicione um novo lembrete para não esquecer pagamentos importantes.'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="data">Data</Label>
-                  <Input
-                    id="data"
-                    type="date"
-                    value={formData.data}
-                    onChange={(e) => setFormData({...formData, data: e.target.value})}
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea
+                    id="descricao"
+                    placeholder="Ex: Pagar conta de luz, Aniversário da Maria..."
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({...formData, descricao: e.target.value})}
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="valor">Valor (opcional)</Label>
-                  <Input
-                    id="valor"
-                    type="number"
-                    step="0.01"
-                    placeholder="0,00"
-                    value={formData.valor}
-                    onChange={(e) => setFormData({...formData, valor: e.target.value})}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="data">Data</Label>
+                    <Input
+                      id="data"
+                      type="date"
+                      value={formData.data}
+                      onChange={(e) => setFormData({...formData, data: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="valor">Valor (opcional)</Label>
+                    <Input
+                      id="valor"
+                      type="number"
+                      step="0.01"
+                      placeholder="0,00"
+                      value={formData.valor}
+                      onChange={(e) => setFormData({...formData, valor: e.target.value})}
+                    />
+                  </div>
                 </div>
-              </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                {editingLembrete ? 'Atualizar' : 'Adicionar'} Lembrete
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  {editingLembrete ? 'Atualizar' : 'Adicionar'} Lembrete
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4">
