@@ -1,6 +1,5 @@
-
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, CreditCard, Calendar, User, LogOut, Tag } from 'lucide-react'
+import { Home, CreditCard, Calendar, User, LogOut, Tag, FileText } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +22,7 @@ const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Transações', url: '/transacoes', icon: CreditCard },
   { title: 'Categorias', url: '/categorias', icon: Tag },
+  { title: 'Relatórios', url: '/relatorios', icon: FileText },
   { title: 'Lembretes', url: '/lembretes', icon: Calendar },
   { title: 'Perfil', url: '/perfil', icon: User },
 ]

@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
 import Lembretes from "./pages/Lembretes";
 import Categorias from "./pages/Categorias";
+import Relatorios from "./pages/Relatorios";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
@@ -83,6 +84,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Categorias />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/relatorios"
+        element={
+          <ProtectedRoute>
+            <Relatorios />
           </ProtectedRoute>
         }
       />
