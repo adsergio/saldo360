@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import Categorias from "./pages/Categorias";
 import Relatorios from "./pages/Relatorios";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
+import Plano from "./pages/Plano";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +58,10 @@ function AppRoutes() {
       <Route 
         path="/auth" 
         element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
+      />
+      <Route 
+        path="/plano" 
+        element={<Plano />} 
       />
       <Route 
         path="/" 

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 interface LoginFormProps {
   onForgotPassword: () => void
@@ -15,6 +16,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +44,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   }
 
   const handleSubscribeClick = () => {
-    window.open('https://sandbox.asaas.com/c/6yc5f1jlcoe21w8b', '_blank')
+    navigate('/plano')
   }
 
   return (
