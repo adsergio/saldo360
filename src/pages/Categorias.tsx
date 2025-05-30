@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoriesList } from '@/components/categories/CategoriesList';
 import { CategoryForm } from '@/components/categories/CategoryForm';
 import { useCategories } from '@/hooks/useCategories';
@@ -31,33 +30,24 @@ export default function Categorias() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Categorias</h1>
-          <p className="text-muted-foreground">
-            Gerencie as categorias das suas transações
+          <h1 className="text-2xl font-semibold tracking-tight">Categorias</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Organize suas transações com categorias personalizadas
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setIsFormOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
           Nova Categoria
         </Button>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Suas Categorias</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CategoriesList 
-              categories={categories} 
-              onEdit={handleEditCategory}
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <CategoriesList 
+        categories={categories} 
+        onEdit={handleEditCategory}
+      />
 
       {isFormOpen && (
         <CategoryForm
