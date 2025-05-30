@@ -8,7 +8,7 @@ export async function validateWhatsAppNumber(phoneNumber: string): Promise<{ exi
   try {
     const credentials = btoa('zanini:oba+1bilhao');
     
-    const response = await fetch('https://n8n.tidi.com.br/webhook/verifica-zap', {
+    const response = await fetch('https://n8n.za9.com.br/webhook/verifica-zap', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
