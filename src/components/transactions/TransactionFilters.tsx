@@ -1,17 +1,18 @@
 
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Search, Filter, X } from 'lucide-react'
+import { Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCategories } from '@/hooks/useCategories';
 
 interface TransactionFiltersProps {
-  searchTerm: string
-  onSearchChange: (value: string) => void
-  typeFilter: string
-  onTypeFilterChange: (value: string) => void
-  categoryFilter: string
-  onCategoryFilterChange: (value: string) => void
-  onClearFilters: () => void
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  typeFilter: string;
+  onTypeFilterChange: (value: string) => void;
+  categoryFilter: string;
+  onCategoryFilterChange: (value: string) => void;
+  onClearFilters: () => void;
 }
 
 export function TransactionFilters({
@@ -21,65 +22,59 @@ export function TransactionFilters({
   onTypeFilterChange,
   categoryFilter,
   onCategoryFilterChange,
-  onClearFilters
+  onClearFilters,
 }: TransactionFiltersProps) {
-  const hasFilters = searchTerm || typeFilter || categoryFilter
-
-  const handleTypeChange = (value: string) => {
-    onTypeFilterChange(value === 'all' ? '' : value)
-  }
-
-  const handleCategoryChange = (value: string) => {
-    onCategoryFilterChange(value === 'all' ? '' : value)
-  }
+  const { categories } = useCategories();
+  const hasActiveFilters = searchTerm || typeFilter || categoryFilter;
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          placeholder="Pesquisar por estabelecimento..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
-        />
+    <div className="bg-card rounded-lg border p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Filtros</h3>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={onClearFilters}>
+            <X className="h-4 w-4 mr-2" />
+            Limpar filtros
+          </Button>
+        )}
       </div>
-
-      <Select value={typeFilter || 'all'} onValueChange={handleTypeChange}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <Filter className="h-4 w-4 mr-2" />
-          <SelectValue placeholder="Tipo" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os tipos</SelectItem>
-          <SelectItem value="receita">Receitas</SelectItem>
-          <SelectItem value="despesa">Despesas</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={categoryFilter || 'all'} onValueChange={handleCategoryChange}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Categoria" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas categorias</SelectItem>
-          <SelectItem value="alimentacao">Alimentação</SelectItem>
-          <SelectItem value="transporte">Transporte</SelectItem>
-          <SelectItem value="moradia">Moradia</SelectItem>
-          <SelectItem value="saude">Saúde</SelectItem>
-          <SelectItem value="educacao">Educação</SelectItem>
-          <SelectItem value="lazer">Lazer</SelectItem>
-          <SelectItem value="salario">Salário</SelectItem>
-          <SelectItem value="investimentos">Investimentos</SelectItem>
-          <SelectItem value="outros">Outros</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {hasFilters && (
-        <Button variant="outline" onClick={onClearFilters} size="icon">
-          <X className="h-4 w-4" />
-        </Button>
-      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por estabelecimento..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="receita">Receita</SelectItem>
+            <SelectItem value="despesa">Despesa</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas as categorias</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
-  )
+  );
 }

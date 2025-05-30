@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,11 @@ import { Badge } from '@/components/ui/badge'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
+import { CategorySelector } from '@/components/transactions/CategorySelector'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useCategories } from '@/hooks/useCategories'
+import { useTransactionCategories } from '@/hooks/useTransactionCategories'
 import { toast } from '@/hooks/use-toast'
 import { Plus, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
@@ -25,12 +29,14 @@ interface Transacao {
   valor: number | null
   detalhes: string | null
   tipo: string | null
-  categoria: string | null
   userId: string | null
+  transaction_categories?: any[]
 }
 
 export default function Transacoes() {
   const { user } = useAuth()
+  const { categories } = useCategories()
+  const { addTransactionCategories } = useTransactionCategories()
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -47,7 +53,7 @@ export default function Transacoes() {
     valor: 0,
     detalhes: '',
     tipo: '',
-    categoria: '',
+    categorias: [] as string[],
   })
 
   useEffect(() => {
@@ -62,7 +68,13 @@ export default function Transacoes() {
       const matchesSearch = !searchTerm || 
         (transacao.estabelecimento?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
       const matchesType = !typeFilter || transacao.tipo === typeFilter
-      const matchesCategory = !categoryFilter || transacao.categoria === categoryFilter
+      
+      let matchesCategory = true
+      if (categoryFilter) {
+        matchesCategory = transacao.transaction_categories?.some(tc => 
+          tc.categorias?.id === categoryFilter
+        ) ?? false
+      }
       
       return matchesSearch && matchesType && matchesCategory
     })
@@ -89,7 +101,14 @@ export default function Transacoes() {
     try {
       const { data, error } = await supabase
         .from('transacoes')
-        .select('*')
+        .select(`
+          *,
+          transaction_categories(
+            id,
+            category_id,
+            categorias(id, nome, tags)
+          )
+        `)
         .eq('userId', user?.id)
         .order('created_at', { ascending: false })
 
@@ -115,6 +134,15 @@ export default function Transacoes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (formData.categorias.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Selecione pelo menos uma categoria",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const transacaoData = {
         quando: formData.quando,
@@ -122,7 +150,6 @@ export default function Transacoes() {
         valor: formData.valor,
         detalhes: formData.detalhes,
         tipo: formData.tipo,
-        categoria: formData.categoria,
         userId: user?.id,
       }
 
@@ -133,13 +160,29 @@ export default function Transacoes() {
           .eq('id', editingTransaction.id)
 
         if (error) throw error
+        
+        // Atualizar categorias
+        addTransactionCategories({
+          transactionId: editingTransaction.id,
+          categoryIds: formData.categorias
+        })
+        
         toast({ title: "Transação atualizada com sucesso!" })
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('transacoes')
           .insert([transacaoData])
+          .select()
+          .single()
 
         if (error) throw error
+        
+        // Adicionar categorias
+        addTransactionCategories({
+          transactionId: data.id,
+          categoryIds: formData.categorias
+        })
+        
         toast({ title: "Transação adicionada com sucesso!" })
       }
 
@@ -151,7 +194,7 @@ export default function Transacoes() {
         valor: 0,
         detalhes: '',
         tipo: '',
-        categoria: '',
+        categorias: [],
       })
       fetchTransacoes()
     } catch (error: any) {
@@ -171,7 +214,7 @@ export default function Transacoes() {
       valor: transacao.valor || 0,
       detalhes: transacao.detalhes || '',
       tipo: transacao.tipo || '',
-      categoria: transacao.categoria || '',
+      categorias: transacao.transaction_categories?.map(tc => tc.category_id) || [],
     })
     setDialogOpen(true)
   }
@@ -303,23 +346,11 @@ export default function Transacoes() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria</Label>
-                  <Select value={formData.categoria} onValueChange={(value) => setFormData({...formData, categoria: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alimentacao">Alimentação</SelectItem>
-                      <SelectItem value="transporte">Transporte</SelectItem>
-                      <SelectItem value="moradia">Moradia</SelectItem>
-                      <SelectItem value="saude">Saúde</SelectItem>
-                      <SelectItem value="educacao">Educação</SelectItem>
-                      <SelectItem value="lazer">Lazer</SelectItem>
-                      <SelectItem value="salario">Salário</SelectItem>
-                      <SelectItem value="investimentos">Investimentos</SelectItem>
-                      <SelectItem value="outros">Outros</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="categorias">Categorias *</Label>
+                  <CategorySelector
+                    selectedCategories={formData.categorias}
+                    onCategoriesChange={(categorias) => setFormData({...formData, categorias})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="quando">Data</Label>
@@ -412,8 +443,15 @@ export default function Transacoes() {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {transacao.categoria && (
-                        <p>Categoria: {transacao.categoria}</p>
+                      {transacao.transaction_categories && transacao.transaction_categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          <span>Categorias:</span>
+                          {transacao.transaction_categories.map((tc, index) => (
+                            <Badge key={tc.id} variant="secondary" className="text-xs">
+                              {tc.categorias?.nome}
+                            </Badge>
+                          ))}
+                        </div>
                       )}
                       {transacao.quando && (
                         <p>Data: {formatDate(transacao.quando)}</p>

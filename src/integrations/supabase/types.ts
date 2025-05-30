@@ -115,7 +115,6 @@ export type Database = {
       }
       transacoes: {
         Row: {
-          categoria: string | null
           created_at: string
           detalhes: string | null
           estabelecimento: string | null
@@ -126,7 +125,6 @@ export type Database = {
           valor: number | null
         }
         Insert: {
-          categoria?: string | null
           created_at?: string
           detalhes?: string | null
           estabelecimento?: string | null
@@ -137,7 +135,6 @@ export type Database = {
           valor?: number | null
         }
         Update: {
-          categoria?: string | null
           created_at?: string
           detalhes?: string | null
           estabelecimento?: string | null
@@ -153,6 +150,42 @@ export type Database = {
             columns: ["userId"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          transaction_id: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          transaction_id: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          transaction_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_categories_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transacoes"
             referencedColumns: ["id"]
           },
         ]
