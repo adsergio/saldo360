@@ -99,7 +99,7 @@ export default function Plano() {
               {/* Impact Message */}
               <div className="bg-primary/10 rounded-lg p-4 mb-8">
                 <p className="text-lg font-semibold text-primary text-center">
-                  Invista no controle da sua vida financeira por menos de R$1 por dia!
+                  Invista no controle da sua vida financeira por menos de R$2 por dia!
                 </p>
               </div>
 
