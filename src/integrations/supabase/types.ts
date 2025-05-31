@@ -77,6 +77,7 @@ export type Database = {
           ativo: boolean | null
           avatar_url: string | null
           created_at: string
+          customerId: string | null
           email: string | null
           id: string
           nome: string | null
@@ -90,6 +91,7 @@ export type Database = {
           ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          customerId?: string | null
           email?: string | null
           id: string
           nome?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          customerId?: string | null
           email?: string | null
           id?: string
           nome?: string | null
