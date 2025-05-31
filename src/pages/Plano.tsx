@@ -14,7 +14,7 @@ export default function Plano() {
     if (theme === 'dark') {
       return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png' // logo-black
     } else if (theme === 'light') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.pn' // logo-white
+      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png' // logo-white
     } else {
       // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
