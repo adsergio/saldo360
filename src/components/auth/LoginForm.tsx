@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,11 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
 
   const handleSubscribeClick = () => {
     navigate('/plano')
+  }
+
+  const handleCreateAccount = () => {
+    navigate('/auth')
+    // Add logic to switch to signup mode
   }
 
   return (

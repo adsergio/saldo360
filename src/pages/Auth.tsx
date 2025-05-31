@@ -77,7 +77,6 @@ export default function Auth() {
         <div className="w-full max-w-md mt-16">
           {mode === 'login' && (
             <LoginForm 
-              onToggleMode={() => setMode('signup')}
               onForgotPassword={() => setMode('forgot')}
             />
           )}
@@ -85,7 +84,7 @@ export default function Auth() {
             <SignUpForm onToggleMode={() => setMode('login')} />
           )}
           {mode === 'forgot' && (
-            <ForgotPasswordForm onBackToLogin={() => setMode('login')} />
+            <ForgotPasswordForm onBack={() => setMode('login')} />
           )}
         </div>
       </div>
