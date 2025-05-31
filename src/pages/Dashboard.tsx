@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -68,35 +67,60 @@ export default function Dashboard() {
   const [dicaDoDia] = useState(dicas[new Date().getDate() % dicas.length])
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
+      console.log('Dashboard: Loading data for user:', user.id)
       fetchDashboardData()
     }
-  }, [user, filterMonth, filterYear])
+  }, [user?.id, filterMonth, filterYear])
 
   const fetchDashboardData = async () => {
-    try {
-      // Buscar transações com filtro
-      const startDate = new Date(parseInt(filterYear), parseInt(filterMonth), 1)
-      const endDate = new Date(parseInt(filterYear), parseInt(filterMonth) + 1, 0)
+    if (!user?.id) {
+      console.error('Dashboard: No user ID available')
+      setLoading(false)
+      return
+    }
 
+    try {
+      setLoading(true)
+      console.log('Dashboard: Fetching data for filters:', { month: filterMonth, year: filterYear })
+
+      // Criar datas de início e fim do período
+      const startDate = new Date(parseInt(filterYear), parseInt(filterMonth), 1)
+      const endDate = new Date(parseInt(filterYear), parseInt(filterMonth) + 1, 0, 23, 59, 59)
+      
+      console.log('Dashboard: Date range:', { startDate, endDate })
+
+      // Buscar transações - usando campo 'quando' para filtro de data
       const { data: transacoes, error: transacoesError } = await supabase
         .from('transacoes')
         .select('*')
-        .eq('userId', user?.id)
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
+        .eq('userId', user.id)
+        .gte('quando', startDate.toISOString().split('T')[0])
+        .lte('quando', endDate.toISOString().split('T')[0])
+        .order('quando', { ascending: false })
 
-      if (transacoesError) throw transacoesError
+      if (transacoesError) {
+        console.error('Dashboard: Error fetching transactions:', transacoesError)
+        throw transacoesError
+      }
 
-      // Buscar lembretes
+      console.log('Dashboard: Transactions fetched:', transacoes?.length || 0)
+
+      // Buscar lembretes - formatando datas corretamente
       const { data: lembretes, error: lembretesError } = await supabase
         .from('lembretes')
         .select('*')
-        .eq('userId', user?.id)
+        .eq('userId', user.id)
         .gte('data', startDate.toISOString().split('T')[0])
         .lte('data', endDate.toISOString().split('T')[0])
+        .order('data', { ascending: true })
 
-      if (lembretesError) throw lembretesError
+      if (lembretesError) {
+        console.error('Dashboard: Error fetching lembretes:', lembretesError)
+        throw lembretesError
+      }
+
+      console.log('Dashboard: Lembretes fetched:', lembretes?.length || 0)
 
       setTransacoes(transacoes || [])
       setLembretes(lembretes || [])
@@ -105,17 +129,22 @@ export default function Dashboard() {
       const receitas = transacoes?.filter(t => t.tipo === 'receita').reduce((sum, t) => sum + (t.valor || 0), 0) || 0
       const despesas = transacoes?.filter(t => t.tipo === 'despesa').reduce((sum, t) => sum + (t.valor || 0), 0) || 0
 
-      setStats({
+      const newStats = {
         totalReceitas: receitas,
         totalDespesas: despesas,
         saldo: receitas - despesas,
         transacoesCount: transacoes?.length || 0,
         lembretesCount: lembretes?.length || 0,
-      })
+      }
+
+      console.log('Dashboard: Calculated stats:', newStats)
+      setStats(newStats)
+
     } catch (error: any) {
+      console.error('Dashboard: Error loading data:', error)
       toast({
         title: "Erro ao carregar dados",
-        description: error.message,
+        description: error.message || "Erro desconhecido ao carregar dados do dashboard",
         variant: "destructive",
       })
     } finally {
@@ -127,7 +156,7 @@ export default function Dashboard() {
     const categorias: { [key: string]: number } = {}
     
     transacoes.forEach(t => {
-      if (t.categoria && t.valor) {
+      if (t.categoria && t.valor && t.tipo === 'despesa') {
         categorias[t.categoria] = (categorias[t.categoria] || 0) + Math.abs(t.valor)
       }
     })
@@ -144,7 +173,7 @@ export default function Dashboard() {
 
     return [
       { name: 'Receitas', value: receitas },
-      { name: 'Despesas', value: despesas }
+      { name: 'Despesas', value: Math.abs(despesas) }
     ]
   }
 
@@ -152,9 +181,16 @@ export default function Dashboard() {
     .filter(l => l.data && new Date(l.data) >= new Date())
     .sort((a, b) => new Date(a.data!).getTime() - new Date(b.data!).getTime())[0]
 
+  // Show loading state
   if (loading) {
     return (
       <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-muted-foreground">Carregando suas finanças pessoais...</p>
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse">
@@ -173,12 +209,27 @@ export default function Dashboard() {
     )
   }
 
+  // Show error state if no user
+  if (!user?.id) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <h2 className="text-2xl font-bold text-muted-foreground mb-2">Usuário não encontrado</h2>
+          <p className="text-muted-foreground">Faça login para visualizar seu dashboard</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">Visão geral das suas finanças pessoais</p>
+          <p className="text-muted-foreground">
+            Visão geral das suas finanças pessoais
+            {transacoes.length > 0 && ` • ${transacoes.length} transações encontradas`}
+          </p>
         </div>
         
         <div className="flex gap-2 items-center">
