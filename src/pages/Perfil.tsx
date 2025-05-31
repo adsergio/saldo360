@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm'
+import { SubscriptionInfo } from '@/components/profile/SubscriptionInfo'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
@@ -398,6 +399,8 @@ export default function Perfil() {
           </form>
         </CardContent>
       </Card>
+
+      <SubscriptionInfo />
 
       <ChangePasswordForm />
 
