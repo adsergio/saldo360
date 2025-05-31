@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast'
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Filter, Lightbulb } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { ChatWidget } from '@/components/chat/ChatWidget'
 
 interface DashboardStats {
   totalReceitas: number
@@ -473,6 +474,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <ChatWidget />
     </div>
   )
 }
