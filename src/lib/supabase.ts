@@ -1,10 +1,16 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://alqzqapccyclmffdfmlc.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFscXpxYXBjY3ljbG1mZmRmbWxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTY4OTIsImV4cCI6MjA2MTc5Mjg5Mn0.WAG002hANNqMuqN2BOnvAMG5SsM2T4Wttz9dKrTj2GY'
+const supabaseUrl = 'https://quuguxkottzbdjzqherd.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1dWd1eGtvdHR6YmRqenFoZXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxOTQ1OTMsImV4cCI6MjA2Mzc3MDU5M30.uvkxQxVuPdX9s6eosHdHkZji7e3J3hgBMUDT_57an5Q'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+})
 
 export type Database = {
   public: {
@@ -20,6 +26,9 @@ export type Database = {
           updated_at: string
           phone: string | null
           whatsapp: string | null
+          customerId: string | null
+          assinaturaId: string | null
+          ativo: boolean | null
         }
         Insert: {
           id: string
@@ -31,6 +40,9 @@ export type Database = {
           updated_at?: string
           phone?: string | null
           whatsapp?: string | null
+          customerId?: string | null
+          assinaturaId?: string | null
+          ativo?: boolean | null
         }
         Update: {
           id?: string
@@ -42,41 +54,44 @@ export type Database = {
           updated_at?: string
           phone?: string | null
           whatsapp?: string | null
+          customerId?: string | null
+          assinaturaId?: string | null
+          ativo?: boolean | null
         }
       }
       transacoes: {
         Row: {
           id: number
-          created_at: string
-          quando: string | null
+          criado_em: string | null
+          data: string
           estabelecimento: string | null
-          valor: number | null
+          valor: number
           detalhes: string | null
           tipo: string | null
           categoria: string | null
-          userId: string | null
+          usuario_id: number | null
         }
         Insert: {
           id?: number
-          created_at?: string
-          quando?: string | null
+          criado_em?: string | null
+          data: string
           estabelecimento?: string | null
-          valor?: number | null
+          valor: number
           detalhes?: string | null
           tipo?: string | null
           categoria?: string | null
-          userId?: string | null
+          usuario_id?: number | null
         }
         Update: {
           id?: number
-          created_at?: string
-          quando?: string | null
+          criado_em?: string | null
+          data?: string
           estabelecimento?: string | null
-          valor?: number | null
+          valor?: number
           detalhes?: string | null
           tipo?: string | null
           categoria?: string | null
-          userId?: string | null
+          usuario_id?: number | null
         }
       }
       lembretes: {
