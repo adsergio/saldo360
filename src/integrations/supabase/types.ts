@@ -63,7 +63,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "lembretes_userId_fkey"
+            foreignKeyName: "lembretes_userid_fkey"
             columns: ["userId"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -118,54 +118,39 @@ export type Database = {
       }
       transacoes: {
         Row: {
-          category_id: string
-          created_at: string
+          categoria: string | null
+          criado_em: string | null
+          data: string
           detalhes: string | null
           estabelecimento: string | null
           id: number
-          quando: string | null
           tipo: string | null
-          userId: string | null
-          valor: number | null
+          usuario_id: number | null
+          valor: number
         }
         Insert: {
-          category_id: string
-          created_at?: string
+          categoria?: string | null
+          criado_em?: string | null
+          data: string
           detalhes?: string | null
           estabelecimento?: string | null
           id?: number
-          quando?: string | null
           tipo?: string | null
-          userId?: string | null
-          valor?: number | null
+          usuario_id?: number | null
+          valor: number
         }
         Update: {
-          category_id?: string
-          created_at?: string
+          categoria?: string | null
+          criado_em?: string | null
+          data?: string
           detalhes?: string | null
           estabelecimento?: string | null
           id?: number
-          quando?: string | null
           tipo?: string | null
-          userId?: string | null
-          valor?: number | null
+          usuario_id?: number | null
+          valor?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "transacoes_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categorias"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transacoes_userId_fkey"
-            columns: ["userId"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
