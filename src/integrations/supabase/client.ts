@@ -2,6 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+//const SUPABASE_URL = "https://quuguxkottzbdjzqherd.supabase.co";
+//const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1dWd1eGtvdHR6YmRqenFoZXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxOTQ1OTMsImV4cCI6MjA2Mzc3MDU5M30.uvkxQxVuPdX9s6eosHdHkZji7e3J3hgBMUDT_57an5Q";
 const SUPABASE_URL = "https://quuguxkottzbdjzqherd.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1dWd1eGtvdHR6YmRqenFoZXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxOTQ1OTMsImV4cCI6MjA2Mzc3MDU5M30.uvkxQxVuPdX9s6eosHdHkZji7e3J3hgBMUDT_57an5Q";
 
