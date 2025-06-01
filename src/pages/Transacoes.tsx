@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
-import { supabase } from '@/integrations/supabase/client'
+import { CategorySelector } from '@/components/transactions/CategorySelector'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useCategories } from '@/hooks/useCategories'
 import { toast } from '@/hooks/use-toast'
@@ -21,14 +22,14 @@ import { formatCurrency } from '@/utils/currency'
 
 interface Transacao {
   id: number
-  criado_em: string | null
-  data: string
+  created_at: string
+  quando: string | null
   estabelecimento: string | null
-  valor: number
+  valor: number | null
   detalhes: string | null
   tipo: string | null
-  categoria: string | null
-  usuario_id: number | null
+  category_id: string
+  userId: string | null
   categorias?: {
     id: string
     nome: string
@@ -49,12 +50,12 @@ export default function Transacoes() {
   const [categoryFilter, setCategoryFilter] = useState('')
 
   const [formData, setFormData] = useState({
-    data: new Date().toISOString().split('T')[0], // Data atual por padrão
+    quando: '',
     estabelecimento: '',
     valor: 0,
     detalhes: '',
     tipo: '',
-    categoria: '',
+    category_id: '',
   })
 
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function Transacoes() {
       const matchesSearch = !searchTerm || 
         (transacao.estabelecimento?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
       const matchesType = !typeFilter || transacao.tipo === typeFilter
-      const matchesCategory = !categoryFilter || transacao.categoria === categoryFilter
+      const matchesCategory = !categoryFilter || transacao.category_id === categoryFilter
       
       return matchesSearch && matchesType && matchesCategory
     })
@@ -94,21 +95,21 @@ export default function Transacoes() {
 
   const fetchTransacoes = async () => {
     try {
-      console.log('Buscando transações para usuário:', user?.id)
       const { data, error } = await supabase
         .from('transacoes')
-        .select('*')
-        .order('criado_em', { ascending: false })
+        .select(`
+          *,
+          categorias (
+            id,
+            nome
+          )
+        `)
+        .eq('userId', user?.id)
+        .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Erro ao buscar transações:', error)
-        throw error
-      }
-      
-      console.log('Transações encontradas:', data)
+      if (error) throw error
       setTransacoes(data || [])
     } catch (error: any) {
-      console.error('Erro completo:', error)
       toast({
         title: "Erro ao carregar transações",
         description: error.message,
@@ -128,20 +129,29 @@ export default function Transacoes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    try {
-      console.log('Dados do formulário:', formData)
-      
-      const transacaoData = {
-        data: formData.data,
-        estabelecimento: formData.estabelecimento || null,
-        valor: formData.valor,
-        detalhes: formData.detalhes || null,
-        tipo: formData.tipo,
-        categoria: formData.categoria || null,
-        usuario_id: user?.id ? parseInt(user.id) : null,
+    // Validação: verificar se a categoria selecionada pertence ao usuário
+    if (formData.category_id) {
+      const categoryBelongsToUser = categories?.some(cat => cat.id === formData.category_id)
+      if (!categoryBelongsToUser) {
+        toast({
+          title: "Erro de validação",
+          description: "A categoria selecionada não é válida para este usuário.",
+          variant: "destructive",
+        })
+        return
       }
+    }
 
-      console.log('Dados para inserir:', transacaoData)
+    try {
+      const transacaoData = {
+        quando: formData.quando,
+        estabelecimento: formData.estabelecimento,
+        valor: formData.valor,
+        detalhes: formData.detalhes,
+        tipo: formData.tipo,
+        category_id: formData.category_id,
+        userId: user?.id,
+      }
 
       if (editingTransaction) {
         const { error } = await supabase
@@ -149,38 +159,29 @@ export default function Transacoes() {
           .update(transacaoData)
           .eq('id', editingTransaction.id)
 
-        if (error) {
-          console.error('Erro ao atualizar:', error)
-          throw error
-        }
+        if (error) throw error
         toast({ title: "Transação atualizada com sucesso!" })
       } else {
-        const { data: insertedData, error } = await supabase
+        const { error } = await supabase
           .from('transacoes')
           .insert([transacaoData])
-          .select()
 
-        if (error) {
-          console.error('Erro ao inserir:', error)
-          throw error
-        }
-        console.log('Transação inserida:', insertedData)
+        if (error) throw error
         toast({ title: "Transação adicionada com sucesso!" })
       }
 
       setDialogOpen(false)
       setEditingTransaction(null)
       setFormData({
-        data: new Date().toISOString().split('T')[0],
+        quando: '',
         estabelecimento: '',
         valor: 0,
         detalhes: '',
         tipo: '',
-        categoria: '',
+        category_id: '',
       })
       fetchTransacoes()
     } catch (error: any) {
-      console.error('Erro ao salvar transação:', error)
       toast({
         title: "Erro ao salvar transação",
         description: error.message,
@@ -192,12 +193,12 @@ export default function Transacoes() {
   const handleEdit = (transacao: Transacao) => {
     setEditingTransaction(transacao)
     setFormData({
-      data: transacao.data || new Date().toISOString().split('T')[0],
+      quando: transacao.quando || '',
       estabelecimento: transacao.estabelecimento || '',
       valor: transacao.valor || 0,
       detalhes: transacao.detalhes || '',
       tipo: transacao.tipo || '',
-      categoria: transacao.categoria || '',
+      category_id: transacao.category_id || '',
     })
     setDialogOpen(true)
   }
@@ -228,7 +229,7 @@ export default function Transacoes() {
       const { error } = await supabase
         .from('transacoes')
         .delete()
-        .neq('id', 0) // Deleta todas as transações
+        .eq('userId', user?.id)
 
       if (error) throw error
       toast({ title: "Todas as transações foram excluídas com sucesso!" })
@@ -300,7 +301,7 @@ export default function Transacoes() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="tipo">Tipo</Label>
-                    <Select value={formData.tipo} onValueChange={(value) => setFormData({...formData, tipo: value})} required>
+                    <Select value={formData.tipo} onValueChange={(value) => setFormData({...formData, tipo: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
@@ -330,21 +331,19 @@ export default function Transacoes() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="categoria">Categoria</Label>
-                  <Input
-                    id="categoria"
-                    placeholder="Ex: Alimentação, Trabalho, etc."
-                    value={formData.categoria}
-                    onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                  <CategorySelector
+                    value={formData.category_id}
+                    onValueChange={(value) => setFormData({...formData, category_id: value})}
+                    placeholder="Selecione a categoria"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="data">Data</Label>
+                  <Label htmlFor="quando">Data</Label>
                   <Input
-                    id="data"
+                    id="quando"
                     type="date"
-                    value={formData.data}
-                    onChange={(e) => setFormData({...formData, data: e.target.value})}
-                    required
+                    value={formData.quando}
+                    onChange={(e) => setFormData({...formData, quando: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
@@ -429,11 +428,11 @@ export default function Transacoes() {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {transacao.categoria && (
-                        <p>Categoria: {transacao.categoria}</p>
+                      {transacao.categorias && (
+                        <p>Categoria: {transacao.categorias.nome}</p>
                       )}
-                      {transacao.data && (
-                        <p>Data: {formatDate(transacao.data)}</p>
+                      {transacao.quando && (
+                        <p>Data: {formatDate(transacao.quando)}</p>
                       )}
                       {transacao.detalhes && (
                         <p>Detalhes: {transacao.detalhes}</p>
