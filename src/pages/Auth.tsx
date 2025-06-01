@@ -1,87 +1,78 @@
 
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
-import { SignUpForm } from '@/components/auth/SignUpForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/hooks/useTheme'
 
+type AuthMode = 'login' | 'forgot'
+
+const authImages = {
+  login: 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748711920/businesswoman-using-laptop-office_axts3h.jpg',
+  forgot: 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748711920/businesswoman-using-laptop-office_axts3h.jpg'
+}
+
 export default function Auth() {
-  const { user, loading } = useAuth()
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
-  const navigate = useNavigate()
+  const [mode, setMode] = useState<AuthMode>('login')
   const { theme } = useTheme()
 
-  useEffect(() => {
-    if (user && !loading) {
-      navigate('/dashboard', { replace: true })
-    }
-  }, [user, loading, navigate])
-
+  // Determine which logo to use based on theme
   const getLogoSrc = () => {
     if (theme === 'dark') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png'
+      return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
     } else if (theme === 'light') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png'
+      return '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png' // logo-white
     } else {
+      // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
-        ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png'
-        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png'
+        ? '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        : '/lovable-uploads/b679a5ba-8a42-42cc-bc36-ccf4569fa05f.png'
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div className="h-screen flex bg-background">
+    <div className="h-screen flex bg-background p-6">
       {/* Left side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden rounded-3xl">
         <img
-          src="/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png"
+          src={authImages[mode]}
           alt="Finance Management"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-primary/20" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-3xl font-bold mb-4">Gerencie suas finanças com inteligência</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-3xl font-bold text-white">Agora ficou fácil!</h2>
+          </div>
           <p className="text-lg opacity-90">
-            Controle total de receitas, despesas e categorias em uma plataforma simples e intuitiva
+            Gerencie suas finanças de forma simples e inteligente
           </p>
         </div>
       </div>
 
-      {/* Right side - Auth Forms */}
+      {/* Right side - Forms */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         {/* Header with Logo and Theme Toggle */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-          <img 
-            src={getLogoSrc()} 
-            alt="FinanceFlow" 
-            className="h-8 w-auto"
-          />
+        <div className="absolute top-4 left-4 right-4 flex justify-end items-center">
+          
+          {/* Theme Toggle */}
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-md mt-16">
+        <div className="grid w-full min-w-[480px] mt-16 justify-center gap-4">
+          <div>
+            <img 
+              src={getLogoSrc()} 
+              alt="FinanceFlow" 
+              className="h-8 w-auto"
+            />
+          </div>
+          
           {mode === 'login' && (
-            <LoginForm 
+            <LoginForm
               onForgotPassword={() => setMode('forgot')}
             />
-          )}
-          {mode === 'signup' && (
-            <SignUpForm onToggleMode={() => setMode('login')} />
           )}
           {mode === 'forgot' && (
             <ForgotPasswordForm onBack={() => setMode('login')} />
