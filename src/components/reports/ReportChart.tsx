@@ -34,12 +34,14 @@ const chartConfig = {
 }
 
 export function ReportChart({ chartData, categoryData }: ReportChartProps) {
-  // Prepare category chart data
-  const categoryChartData = Object.entries(categoryData).map(([name, data]) => ({
-    category: name,
-    receitas: data.receitas,
-    despesas: data.despesas,
-  }))
+  // Prepare category chart data - filter out empty categories
+  const categoryChartData = Object.entries(categoryData)
+    .filter(([name, data]) => data.despesas > 0 || data.receitas > 0)
+    .map(([name, data]) => ({
+      category: name,
+      receitas: data.receitas,
+      despesas: Math.abs(data.despesas), // Ensure positive values for display
+    }))
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -77,23 +79,33 @@ export function ReportChart({ chartData, categoryData }: ReportChartProps) {
           <CardTitle>Receitas vs Despesas por Categoria</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <XAxis 
-                  dataKey="category" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="receitas" fill="#22c55e" />
-                <Bar dataKey="despesas" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {categoryChartData.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={categoryChartData} 
+                  margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                >
+                  <XAxis 
+                    dataKey="category" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="receitas" fill="#22c55e" name="Receitas" />
+                  <Bar dataKey="despesas" fill="#ef4444" name="Despesas" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <p>Nenhum dado de categoria disponível para o período selecionado</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

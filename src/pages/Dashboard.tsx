@@ -157,14 +157,20 @@ export default function Dashboard() {
     
     transacoes.forEach(t => {
       if (t.categoria && t.valor && t.tipo === 'despesa') {
-        categorias[t.categoria] = (categorias[t.categoria] || 0) + Math.abs(t.valor)
+        const categoria = t.categoria
+        const valor = Math.abs(t.valor) // Ensure positive values
+        categorias[categoria] = (categorias[categoria] || 0) + valor
       }
     })
 
-    return Object.entries(categorias).map(([categoria, valor]) => ({
-      categoria,
-      valor
-    }))
+    // Only return categories with actual data
+    return Object.entries(categorias)
+      .filter(([categoria, valor]) => valor > 0)
+      .map(([categoria, valor]) => ({
+        categoria,
+        valor
+      }))
+      .sort((a, b) => b.valor - a.valor) // Sort by value descending
   }
 
   const getPieData = () => {
@@ -343,17 +349,30 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={getChartData()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="categoria" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                  <Bar dataKey="valor" fill="#4361ee" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {getChartData().length > 0 ? (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="categoria" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    <Bar dataKey="valor" fill="#4361ee" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <p>Nenhum gasto por categoria encontrado no período selecionado</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
