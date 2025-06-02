@@ -26,7 +26,11 @@ interface Transacao {
   valor: number | null
   detalhes: string | null
   tipo: string | null
-  categoria: string | null
+  category_id: string | null
+  categorias?: {
+    id: string
+    nome: string
+  }
   userId: string | null
 }
 
@@ -90,10 +94,16 @@ export default function Dashboard() {
       
       console.log('Dashboard: Date range:', { startDate, endDate })
 
-      // Buscar transações - usando campo 'quando' para filtro de data
+      // Buscar transações com categorias - usando LEFT JOIN para incluir todas as transações
       const { data: transacoes, error: transacoesError } = await supabase
         .from('transacoes')
-        .select('*')
+        .select(`
+          *,
+          categorias (
+            id,
+            nome
+          )
+        `)
         .eq('userId', user.id)
         .gte('quando', startDate.toISOString().split('T')[0])
         .lte('quando', endDate.toISOString().split('T')[0])
@@ -105,6 +115,7 @@ export default function Dashboard() {
       }
 
       console.log('Dashboard: Transactions fetched:', transacoes?.length || 0)
+      console.log('Dashboard: Transactions with categories:', transacoes)
 
       // Buscar lembretes - formatando datas corretamente
       const { data: lembretes, error: lembretesError } = await supabase
@@ -153,24 +164,33 @@ export default function Dashboard() {
   }
 
   const getChartData = () => {
+    console.log('Dashboard: Getting chart data from transactions:', transacoes)
+    
     const categorias: { [key: string]: number } = {}
     
     transacoes.forEach(t => {
-      if (t.categoria && t.valor && t.tipo === 'despesa') {
-        const categoria = t.categoria
+      if (t.valor && t.tipo === 'despesa') {
+        // Usar o nome da categoria do relacionamento ou fallback para "Sem categoria"
+        const categoria = t.categorias?.nome || 'Sem categoria'
         const valor = Math.abs(t.valor) // Ensure positive values
         categorias[categoria] = (categorias[categoria] || 0) + valor
+        console.log('Dashboard: Adding to category', categoria, 'value:', valor)
       }
     })
 
+    console.log('Dashboard: Categories data:', categorias)
+
     // Only return categories with actual data
-    return Object.entries(categorias)
+    const chartData = Object.entries(categorias)
       .filter(([categoria, valor]) => valor > 0)
       .map(([categoria, valor]) => ({
         categoria,
         valor
       }))
       .sort((a, b) => b.valor - a.valor) // Sort by value descending
+
+    console.log('Dashboard: Final chart data:', chartData)
+    return chartData
   }
 
   const getPieData = () => {
