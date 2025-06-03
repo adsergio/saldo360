@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Home, CreditCard, Calendar, User, LogOut, Tag, FileText } from 'lucide-react'
 import {
   Sidebar,
@@ -30,12 +30,22 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
+  const navigate = useNavigate()
   const { signOut } = useAuth()
   const { theme } = useTheme()
   const currentPath = location.pathname
 
   const isActive = (path: string) => currentPath === path
   const isCollapsed = state === "collapsed"
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      navigate('/auth')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   // Determine which logo to use based on theme
   const getLogoSrc = () => {
@@ -107,7 +117,7 @@ export function AppSidebar() {
         <UserProfile />
         
         <Button
-          onClick={signOut}
+          onClick={handleSignOut}
           variant="outline"
           size={isCollapsed ? "icon" : "default"}
           className="w-full"
