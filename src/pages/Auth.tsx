@@ -19,14 +19,14 @@ export default function Auth() {
   // Determine which logo to use based on theme
   const getLogoSrc = () => {
     if (theme === 'dark') {
-      return '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png' // logo-black
+      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png' // logo-black
     } else if (theme === 'light') {
       return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png' // logo-white
     } else {
       // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
-        ? '/lovable-uploads/bd48b065-36ce-4af8-926d-a1f05a2d43c5.png'
+        ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png'
         : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png'
     }
   }
