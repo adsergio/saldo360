@@ -43,7 +43,7 @@ export default function Plano() {
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden rounded-3xl">
         <img
-          src="/lovable-uploads/7a9a766e-0b47-43d5-9605-b2ec2dcd0803.png"
+          src="https://res.cloudinary.com/djs0ny9pw/image/upload/v1749060223/foto-plano_hyoibz.jpg"
           alt="Finance Management"
           className="w-full h-full object-cover"
         />
