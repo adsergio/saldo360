@@ -64,7 +64,7 @@ export default function Auth() {
           <div>
             <img 
               src={getLogoSrc()} 
-              alt="FinanceFlow" 
+              alt="Saldo360" 
               className="h-8 w-auto"
             />
           </div>
