@@ -20,7 +20,7 @@ export default function Plano() {
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
         ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png'
-        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.pn'
+        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png'
     }
   }
 
