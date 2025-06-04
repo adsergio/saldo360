@@ -12,15 +12,15 @@ export default function Plano() {
   // Determine which logo to use based on theme
   const getLogoSrc = () => {
     if (theme === 'dark') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png' // logo-black
+      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png' // logo-black
     } else if (theme === 'light') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png' // logo-white
+      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png' // logo-white
     } else {
       // System theme - check actual computed theme
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       return isDark 
-        ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748729827/Saldo_360_iq1bbf.png'
-        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748730072/logo-white_i6vfcz.png'
+        ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png'
+        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png'
     }
   }
 
@@ -70,7 +70,7 @@ export default function Plano() {
           <div>
             <img 
               src={getLogoSrc()} 
-              alt="FinanceFlow" 
+              alt="Saldo360" 
               className="h-8 w-auto"
             />
           </div>
