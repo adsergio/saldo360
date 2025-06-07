@@ -114,6 +114,10 @@ export function CartoesList({ onEdit }: CartoesListProps) {
     return `**** **** **** ${numero.slice(-4)}`
   }
 
+  const formatDiaVencimento = (dia: string) => {
+    return `Dia ${dia}`
+  }
+
   useEffect(() => {
     fetchCartoes()
   }, [user])
@@ -147,7 +151,7 @@ export function CartoesList({ onEdit }: CartoesListProps) {
             <TableCell className="font-medium">{cartao.nome}</TableCell>
             <TableCell>{cartao.bandeira || '-'}</TableCell>
             <TableCell>{formatCardNumber(cartao.numero)}</TableCell>
-            <TableCell>{cartao.data_vencimento}</TableCell>
+            <TableCell>{formatDiaVencimento(cartao.data_vencimento)}</TableCell>
             <TableCell className="text-right">
               <div className="flex gap-2 justify-end">
                 <Button

@@ -75,11 +75,11 @@ export function CartaoForm({ cartao, onSuccess, onCancel }: CartaoFormProps) {
     }
   }
 
-  const formatExpirationDate = (value: string) => {
+  const formatDiaVencimento = (value: string) => {
     const v = value.replace(/\D/g, '')
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4)
-    }
+    const day = parseInt(v)
+    if (day > 31) return '31'
+    if (day < 1 && v.length > 0) return '1'
     return v
   }
 
@@ -87,7 +87,7 @@ export function CartaoForm({ cartao, onSuccess, onCancel }: CartaoFormProps) {
     if (field === 'numero') {
       value = formatCardNumber(value)
     } else if (field === 'data_vencimento') {
-      value = formatExpirationDate(value)
+      value = formatDiaVencimento(value)
     }
     
     setFormData(prev => ({
@@ -111,16 +111,17 @@ export function CartaoForm({ cartao, onSuccess, onCancel }: CartaoFormProps) {
     if (!formData.data_vencimento.trim()) {
       toast({
         title: 'Erro',
-        description: 'Data de vencimento é obrigatória',
+        description: 'Dia de vencimento é obrigatório',
         variant: 'destructive',
       })
       return
     }
 
-    if (formData.data_vencimento.length !== 5) {
+    const day = parseInt(formData.data_vencimento)
+    if (day < 1 || day > 31) {
       toast({
         title: 'Erro',
-        description: 'Data de vencimento deve estar no formato MM/AA',
+        description: 'Dia de vencimento deve ser entre 1 e 31',
         variant: 'destructive',
       })
       return
@@ -195,14 +196,15 @@ export function CartaoForm({ cartao, onSuccess, onCancel }: CartaoFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="data_vencimento">Data de Vencimento *</Label>
+        <Label htmlFor="data_vencimento">Dia de Vencimento *</Label>
         <Input
           id="data_vencimento"
-          type="text"
+          type="number"
           value={formData.data_vencimento}
           onChange={(e) => handleInputChange('data_vencimento', e.target.value)}
-          placeholder="MM/AA"
-          maxLength={5}
+          placeholder="Ex: 15"
+          min="1"
+          max="31"
           required
         />
       </div>
