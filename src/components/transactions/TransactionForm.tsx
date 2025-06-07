@@ -1,20 +1,15 @@
+
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { CurrencyInput } from '@/components/ui/currency-input'
-import { CategorySelector } from '@/components/transactions/CategorySelector'
-import { CartaoSelector } from '@/components/transactions/CartaoSelector'
+import { TransactionFormFields } from '@/components/transactions/TransactionFormFields'
+import { TransactionFormButtons } from '@/components/transactions/TransactionFormButtons'
 import { InstallmentModal } from '@/components/transactions/InstallmentModal'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useCategories } from '@/hooks/useCategories'
 import { useInstallments } from '@/hooks/useInstallments'
 import { toast } from '@/hooks/use-toast'
-import { CreditCard, X } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
 
 interface Transacao {
@@ -215,100 +210,18 @@ export function TransactionForm({
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo</Label>
-                <Select value={formData.tipo} onValueChange={(value) => setFormData({...formData, tipo: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="receita">Receita</SelectItem>
-                    <SelectItem value="despesa">Despesa</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="valor">Valor</Label>
-                <CurrencyInput
-                  value={formData.valor}
-                  onChange={(value) => setFormData({...formData, valor: value})}
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="estabelecimento">Estabelecimento</Label>
-              <Input
-                id="estabelecimento"
-                placeholder="Ex: Supermercado, Salário, etc."
-                value={formData.estabelecimento}
-                onChange={(e) => setFormData({...formData, estabelecimento: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria</Label>
-              <CategorySelector
-                value={formData.category_id}
-                onValueChange={(value) => setFormData({...formData, category_id: value})}
-                placeholder="Selecione a categoria"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cartao">Cartão de Crédito</Label>
-              <CartaoSelector
-                value={formData.cartao_id}
-                onValueChange={(value) => setFormData({...formData, cartao_id: value})}
-                placeholder="Selecione um cartão (opcional)"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quando">Data</Label>
-              <Input
-                id="quando"
-                type="date"
-                value={formData.quando}
-                onChange={(e) => setFormData({...formData, quando: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="detalhes">Detalhes</Label>
-              <Textarea
-                id="detalhes"
-                placeholder="Informações adicionais..."
-                value={formData.detalhes}
-                onChange={(e) => setFormData({...formData, detalhes: e.target.value})}
-              />
-            </div>
+            <TransactionFormFields 
+              formData={formData}
+              setFormData={setFormData}
+            />
             
-            {/* Botões de Parcelamento */}
-            <div className="space-y-2">
-              {/* Mostrar botão Parcelar se: tem cartão selecionado E a transação não é parcelada */}
-              {hasSelectedCard && !isInstallmentTransaction && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setInstallmentModalOpen(true)}
-                  className="w-full"
-                >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Parcelar Compra
-                </Button>
-              )}
-              
-              {/* Mostrar botão Desfazer apenas se a transação é parcelada */}
-              {isInstallmentTransaction && editingTransaction?.installment_group_id && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => handleRemoveInstallments(editingTransaction.installment_group_id!, editingTransaction.id)}
-                  className="w-full"
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Desfazer Parcelamento
-                </Button>
-              )}
-            </div>
+            <TransactionFormButtons
+              hasSelectedCard={hasSelectedCard}
+              isInstallmentTransaction={isInstallmentTransaction}
+              editingTransaction={editingTransaction}
+              onInstallmentClick={() => setInstallmentModalOpen(true)}
+              onRemoveInstallments={handleRemoveInstallments}
+            />
             
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
               {editingTransaction ? 'Atualizar' : 'Adicionar'} Transação
