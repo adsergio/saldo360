@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -139,6 +138,18 @@ export function TransactionForm({
     }
   }
 
+  const handleInstallmentClick = () => {
+    if (!formData.quando) {
+      toast({
+        title: "Data obrigatória",
+        description: "Selecione a data da transação antes de parcelar.",
+        variant: "destructive",
+      })
+      return
+    }
+    setInstallmentModalOpen(true)
+  }
+
   const handleInstallmentConfirm = async (installments: number) => {
     if (!user?.id) return
 
@@ -219,7 +230,7 @@ export function TransactionForm({
               hasSelectedCard={hasSelectedCard}
               isInstallmentTransaction={isInstallmentTransaction}
               editingTransaction={editingTransaction}
-              onInstallmentClick={() => setInstallmentModalOpen(true)}
+              onInstallmentClick={handleInstallmentClick}
               onRemoveInstallments={handleRemoveInstallments}
             />
             
@@ -234,6 +245,7 @@ export function TransactionForm({
         open={installmentModalOpen}
         onOpenChange={setInstallmentModalOpen}
         totalValue={formData.valor}
+        transactionDate={formData.quando}
         onConfirm={handleInstallmentConfirm}
         isLoading={isProcessingInstallment}
       />
