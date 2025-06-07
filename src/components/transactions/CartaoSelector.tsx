@@ -21,13 +21,20 @@ export function CartaoSelector({ value, onValueChange, placeholder = "Selecione 
     )
   }
 
+  const handleValueChange = (newValue: string) => {
+    // Convert "none" back to empty string for the form
+    onValueChange(newValue === "none" ? "" : newValue)
+  }
+
+  const selectValue = value === "" ? "none" : value
+
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={selectValue} onValueChange={handleValueChange}>
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Sem cartão</SelectItem>
+        <SelectItem value="none">Sem cartão</SelectItem>
         {cartoes.map((cartao) => (
           <SelectItem key={cartao.id} value={cartao.id}>
             {cartao.nome} {cartao.bandeira ? `(${cartao.bandeira})` : ''}
