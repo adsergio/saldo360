@@ -157,8 +157,12 @@ export type Database = {
           detalhes: string | null
           estabelecimento: string | null
           id: number
+          installment_group_id: string | null
+          installment_number: number | null
+          is_installment: boolean | null
           quando: string | null
           tipo: string | null
+          total_installments: number | null
           userId: string | null
           valor: number | null
         }
@@ -169,8 +173,12 @@ export type Database = {
           detalhes?: string | null
           estabelecimento?: string | null
           id?: number
+          installment_group_id?: string | null
+          installment_number?: number | null
+          is_installment?: boolean | null
           quando?: string | null
           tipo?: string | null
+          total_installments?: number | null
           userId?: string | null
           valor?: number | null
         }
@@ -181,8 +189,12 @@ export type Database = {
           detalhes?: string | null
           estabelecimento?: string | null
           id?: number
+          installment_group_id?: string | null
+          installment_number?: number | null
+          is_installment?: boolean | null
           quando?: string | null
           tipo?: string | null
+          total_installments?: number | null
           userId?: string | null
           valor?: number | null
         }

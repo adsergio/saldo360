@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,11 +13,13 @@ import { TransactionSummaryCards } from '@/components/transactions/TransactionSu
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { CategorySelector } from '@/components/transactions/CategorySelector'
 import { CartaoSelector } from '@/components/transactions/CartaoSelector'
+import { InstallmentModal } from '@/components/transactions/InstallmentModal'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useCategories } from '@/hooks/useCategories'
+import { useInstallments } from '@/hooks/useInstallments'
 import { toast } from '@/hooks/use-toast'
-import { Plus, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
+import { Plus, Edit, Trash2, TrendingUp, TrendingDown, CreditCard, X } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
 
 interface Transacao {
@@ -32,6 +33,10 @@ interface Transacao {
   category_id: string
   cartao_id: string | null
   userId: string | null
+  is_installment: boolean | null
+  installment_group_id: string | null
+  installment_number: number | null
+  total_installments: number | null
   categorias?: {
     id: string
     nome: string
@@ -46,10 +51,13 @@ interface Transacao {
 export default function Transacoes() {
   const { user } = useAuth()
   const { categories } = useCategories()
+  const { createInstallments, removeInstallments } = useInstallments()
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transacao | null>(null)
+  const [installmentModalOpen, setInstallmentModalOpen] = useState(false)
+  const [isProcessingInstallment, setIsProcessingInstallment] = useState(false)
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -259,9 +267,75 @@ export default function Transacoes() {
     }
   }
 
+  const handleInstallmentConfirm = async (installments: number) => {
+    if (!user?.id) return
+
+    setIsProcessingInstallment(true)
+    try {
+      const transacaoData = {
+        quando: formData.quando,
+        estabelecimento: formData.estabelecimento,
+        valor: formData.valor,
+        detalhes: formData.detalhes,
+        tipo: formData.tipo,
+        category_id: formData.category_id,
+        cartao_id: formData.cartao_id,
+        userId: user.id,
+      }
+
+      await createInstallments(transacaoData, installments)
+      
+      toast({ 
+        title: "Parcelamento criado com sucesso!",
+        description: `${installments} parcelas de ${formatCurrency(formData.valor / installments)} foram criadas.`
+      })
+      
+      setInstallmentModalOpen(false)
+      setDialogOpen(false)
+      setEditingTransaction(null)
+      setFormData({
+        quando: '',
+        estabelecimento: '',
+        valor: 0,
+        detalhes: '',
+        tipo: '',
+        category_id: '',
+        cartao_id: '',
+      })
+      fetchTransacoes()
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar parcelamento",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessingInstallment(false)
+    }
+  }
+
+  const handleRemoveInstallments = async (installmentGroupId: string, transactionId: number) => {
+    if (!confirm('Tem certeza que deseja desfazer todo o parcelamento? Todas as parcelas serão removidas.')) return
+
+    try {
+      await removeInstallments(installmentGroupId)
+      toast({ title: "Parcelamento desfeito com sucesso!" })
+      fetchTransacoes()
+    } catch (error: any) {
+      toast({
+        title: "Erro ao desfazer parcelamento",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
+
+  const hasSelectedCard = formData.cartao_id && formData.cartao_id !== ''
+  const isInstallmentTransaction = editingTransaction?.is_installment
 
   return (
     <div className="space-y-6">
@@ -379,6 +453,34 @@ export default function Transacoes() {
                     onChange={(e) => setFormData({...formData, detalhes: e.target.value})}
                   />
                 </div>
+                
+                {/* Botões de Parcelamento */}
+                <div className="space-y-2">
+                  {hasSelectedCard && !editingTransaction && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setInstallmentModalOpen(true)}
+                      className="w-full"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Parcelar Compra
+                    </Button>
+                  )}
+                  
+                  {isInstallmentTransaction && editingTransaction?.installment_group_id && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => handleRemoveInstallments(editingTransaction.installment_group_id!, editingTransaction.id)}
+                      className="w-full"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Desfazer Parcelamento
+                    </Button>
+                  )}
+                </div>
+                
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                   {editingTransaction ? 'Atualizar' : 'Adicionar'} Transação
                 </Button>
@@ -402,6 +504,14 @@ export default function Transacoes() {
         categoryFilter={categoryFilter}
         onCategoryFilterChange={setCategoryFilter}
         onClearFilters={clearFilters}
+      />
+
+      <InstallmentModal
+        open={installmentModalOpen}
+        onOpenChange={setInstallmentModalOpen}
+        totalValue={formData.valor}
+        onConfirm={handleInstallmentConfirm}
+        isLoading={isProcessingInstallment}
       />
 
       <div className="grid gap-4">
@@ -450,6 +560,11 @@ export default function Transacoes() {
                       <Badge variant={transacao.tipo === 'receita' ? 'default' : 'destructive'}>
                         {transacao.tipo}
                       </Badge>
+                      {transacao.is_installment && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {transacao.installment_number}/{transacao.total_installments}
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       {transacao.categorias && (
