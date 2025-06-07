@@ -13,6 +13,7 @@ import { CurrencyInput } from '@/components/ui/currency-input'
 import { TransactionSummaryCards } from '@/components/transactions/TransactionSummaryCards'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { CategorySelector } from '@/components/transactions/CategorySelector'
+import { CartaoSelector } from '@/components/transactions/CartaoSelector'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useCategories } from '@/hooks/useCategories'
@@ -29,10 +30,16 @@ interface Transacao {
   detalhes: string | null
   tipo: string | null
   category_id: string
+  cartao_id: string | null
   userId: string | null
   categorias?: {
     id: string
     nome: string
+  }
+  cartoes_credito?: {
+    id: string
+    nome: string
+    bandeira?: string
   }
 }
 
@@ -56,6 +63,7 @@ export default function Transacoes() {
     detalhes: '',
     tipo: '',
     category_id: '',
+    cartao_id: '',
   })
 
   useEffect(() => {
@@ -102,6 +110,11 @@ export default function Transacoes() {
           categorias (
             id,
             nome
+          ),
+          cartoes_credito (
+            id,
+            nome,
+            bandeira
           )
         `)
         .eq('userId', user?.id)
@@ -150,6 +163,7 @@ export default function Transacoes() {
         detalhes: formData.detalhes,
         tipo: formData.tipo,
         category_id: formData.category_id,
+        cartao_id: formData.cartao_id || null,
         userId: user?.id,
       }
 
@@ -179,6 +193,7 @@ export default function Transacoes() {
         detalhes: '',
         tipo: '',
         category_id: '',
+        cartao_id: '',
       })
       fetchTransacoes()
     } catch (error: any) {
@@ -199,6 +214,7 @@ export default function Transacoes() {
       detalhes: transacao.detalhes || '',
       tipo: transacao.tipo || '',
       category_id: transacao.category_id || '',
+      cartao_id: transacao.cartao_id || '',
     })
     setDialogOpen(true)
   }
@@ -338,6 +354,14 @@ export default function Transacoes() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="cartao">Cartão de Crédito</Label>
+                  <CartaoSelector
+                    value={formData.cartao_id}
+                    onValueChange={(value) => setFormData({...formData, cartao_id: value})}
+                    placeholder="Selecione um cartão (opcional)"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="quando">Data</Label>
                   <Input
                     id="quando"
@@ -430,6 +454,9 @@ export default function Transacoes() {
                     <div className="text-sm text-muted-foreground space-y-1">
                       {transacao.categorias && (
                         <p>Categoria: {transacao.categorias.nome}</p>
+                      )}
+                      {transacao.cartoes_credito && (
+                        <p>Cartão: {transacao.cartoes_credito.nome} {transacao.cartoes_credito.bandeira ? `(${transacao.cartoes_credito.bandeira})` : ''}</p>
                       )}
                       {transacao.quando && (
                         <p>Data: {formatDate(transacao.quando)}</p>
