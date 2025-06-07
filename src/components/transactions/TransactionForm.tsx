@@ -283,7 +283,8 @@ export function TransactionForm({
             
             {/* Botões de Parcelamento */}
             <div className="space-y-2">
-              {hasSelectedCard && !editingTransaction && (
+              {/* Mostrar botão Parcelar se: tem cartão selecionado E a transação não é parcelada */}
+              {hasSelectedCard && !isInstallmentTransaction && (
                 <Button
                   type="button"
                   variant="outline"
@@ -295,6 +296,7 @@ export function TransactionForm({
                 </Button>
               )}
               
+              {/* Mostrar botão Desfazer apenas se a transação é parcelada */}
               {isInstallmentTransaction && editingTransaction?.installment_group_id && (
                 <Button
                   type="button"
