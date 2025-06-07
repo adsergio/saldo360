@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cartoes_credito: {
+        Row: {
+          bandeira: string | null
+          created_at: string
+          data_vencimento: string
+          id: string
+          nome: string
+          numero: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bandeira?: string | null
+          created_at?: string
+          data_vencimento: string
+          id?: string
+          nome: string
+          numero?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bandeira?: string | null
+          created_at?: string
+          data_vencimento?: string
+          id?: string
+          nome?: string
+          numero?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categorias: {
         Row: {
           created_at: string

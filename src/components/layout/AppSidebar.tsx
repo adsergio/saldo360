@@ -1,3 +1,4 @@
+
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Home, CreditCard, Calendar, User, LogOut, Tag, FileText } from 'lucide-react'
 import {
@@ -22,6 +23,7 @@ const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Transações', url: '/transacoes', icon: CreditCard },
   { title: 'Categorias', url: '/categorias', icon: Tag },
+  { title: 'Cartão de Crédito', url: '/cartoes', icon: CreditCard },
   { title: 'Relatórios', url: '/relatorios', icon: FileText },
   { title: 'Lembretes', url: '/lembretes', icon: Calendar },
   { title: 'Perfil', url: '/perfil', icon: User },

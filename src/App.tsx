@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Transacoes from "./pages/Transacoes";
 import Lembretes from "./pages/Lembretes";
 import Categorias from "./pages/Categorias";
+import Cartoes from "./pages/Cartoes";
 import Relatorios from "./pages/Relatorios";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
@@ -88,6 +90,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Categorias />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cartoes"
+        element={
+          <ProtectedRoute>
+            <Cartoes />
           </ProtectedRoute>
         }
       />
