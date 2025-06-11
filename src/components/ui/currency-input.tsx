@@ -1,7 +1,7 @@
 
 import React, { forwardRef } from 'react'
 import { Input } from '@/components/ui/input'
-import { formatCurrencyInput, parseCurrency } from '@/utils/currency'
+import { formatCurrencyInput, formatExistingValue, parseCurrency } from '@/utils/currency'
 import { cn } from '@/lib/utils'
 
 interface CurrencyInputProps extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
@@ -14,11 +14,16 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const [displayValue, setDisplayValue] = React.useState('')
 
     React.useEffect(() => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         const numValue = typeof value === 'string' ? parseFloat(value) : value
-        if (!isNaN(numValue)) {
-          setDisplayValue(formatCurrencyInput((numValue * 100).toString()))
+        if (!isNaN(numValue) && numValue > 0) {
+          // Usar a nova função para formatar valores existentes
+          setDisplayValue(formatExistingValue(numValue))
+        } else {
+          setDisplayValue('')
         }
+      } else {
+        setDisplayValue('')
       }
     }, [value])
 

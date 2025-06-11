@@ -37,3 +37,15 @@ export const formatCurrencyInput = (value: string): string => {
     maximumFractionDigits: 2,
   }).format(reais)
 }
+
+// Nova função para formatar valores existentes para exibição no input
+export const formatExistingValue = (value: number): string => {
+  if (isNaN(value) || value === 0) return ''
+  
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
