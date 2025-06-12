@@ -67,7 +67,7 @@ export function SubscriptionInfo() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          /*'Authorization': 'Basic 9f8e4e38-4a3b-4f5a-b6b7-87d45a1f2e9c'*/
+          'Authorization': 'sergiosilva 9f8e4e38-4a3b-4f5a-b6b7-87d45a1f2e9c'
         },
         body: new URLSearchParams({
           subscription: assinaturaId!
