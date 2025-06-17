@@ -1,8 +1,6 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { SystemStatus } from '@/components/debug/SystemStatus'
 import { ArrowUpRight, ArrowDownRight, DollarSign, CreditCard, Calendar, Plus, TrendingUp, TrendingDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -22,9 +20,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Debug Component - Temporário */}
-      <SystemStatus />
-      
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
