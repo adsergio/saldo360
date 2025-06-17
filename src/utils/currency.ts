@@ -13,11 +13,27 @@ export const formatCurrency = (value: number | string): string => {
 }
 
 export const parseCurrency = (value: string): number => {
-  // Remove caracteres não numéricos, exceto vírgula e ponto
-  const cleaned = value.replace(/[^\d,-]/g, '')
-  // Substitui vírgula por ponto para conversão
-  const normalized = cleaned.replace(',', '.')
-  return parseFloat(normalized) || 0
+  console.log('💰 parseCurrency input:', value)
+  
+  if (!value || typeof value !== 'string') {
+    console.log('💰 parseCurrency: empty or invalid input')
+    return 0
+  }
+  
+  // Remove todos os caracteres que não são números, vírgula ou ponto
+  let cleaned = value.replace(/[^\d,.-]/g, '')
+  console.log('💰 parseCurrency cleaned:', cleaned)
+  
+  // Se tem vírgula, assumir formato brasileiro (1.000,50)
+  if (cleaned.includes(',')) {
+    // Remover pontos (separadores de milhares) e trocar vírgula por ponto
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.')
+  }
+  
+  const result = parseFloat(cleaned)
+  console.log('💰 parseCurrency result:', result)
+  
+  return isNaN(result) ? 0 : result
 }
 
 export const formatCurrencyInput = (value: string): string => {

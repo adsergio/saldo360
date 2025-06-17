@@ -15,6 +15,8 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const [displayValue, setDisplayValue] = React.useState('')
 
     React.useEffect(() => {
+      console.log('💰 CurrencyInput value prop changed:', value, typeof value)
+      
       if (value !== undefined && value !== null) {
         const numValue = typeof value === 'string' ? parseFloat(value) : value
         if (!isNaN(numValue) && numValue > 0) {
@@ -29,28 +31,28 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value
+      console.log('💰 CurrencyInput input value:', inputValue)
+      
       const formatted = formatCurrencyInput(inputValue)
+      console.log('💰 CurrencyInput formatted:', formatted)
+      
       setDisplayValue(formatted)
       
-      // Atualizar o valor numérico
+      // Parsear o valor numérico
       const numericValue = parseCurrency(formatted)
+      console.log('💰 CurrencyInput numeric value:', numericValue)
+      
+      // Garantir que sempre seja um número válido
+      const validValue = isNaN(numericValue) ? 0 : numericValue
       
       // Chamar onValueChange se fornecido
       if (onValueChange) {
-        onValueChange(numericValue)
+        console.log('💰 CurrencyInput calling onValueChange with:', validValue)
+        onValueChange(validValue)
       }
       
-      // Criar um evento sintético para react-hook-form
-      if (onChange) {
-        const syntheticEvent = {
-          ...e,
-          target: {
-            ...e.target,
-            value: numericValue.toString(),
-          },
-        }
-        onChange(syntheticEvent as React.ChangeEvent<HTMLInputElement>)
-      }
+      // NÃO chamar onChange para evitar dupla manipulação com react-hook-form
+      // O react-hook-form será atualizado via setValue no componente pai
     }
 
     return (

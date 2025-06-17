@@ -18,6 +18,11 @@ interface ContasFormFieldsProps {
 export function ContasFormFields({ register, setValue, errors, valor }: ContasFormFieldsProps) {
   const { categories } = useCategories()
 
+  const handleValueChange = (newValue: number) => {
+    console.log('💰 ContasFormFields handleValueChange:', newValue)
+    setValue('valor', newValue, { shouldValidate: true })
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -36,9 +41,10 @@ export function ContasFormFields({ register, setValue, errors, valor }: ContasFo
         <div className="space-y-2">
           <Label htmlFor="valor">Valor</Label>
           <CurrencyInput
-            {...register('valor', { valueAsNumber: true })}
+            id="valor"
+            name="valor"
             value={valor}
-            onValueChange={(newValue) => setValue('valor', newValue)}
+            onValueChange={handleValueChange}
             placeholder="R$ 0,00"
           />
           {errors.valor && (

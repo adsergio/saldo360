@@ -52,10 +52,19 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const recorrente = watch('recorrente')
   const valor = watch('valor')
 
+  console.log('💰 ContasForm current valor:', valor, typeof valor)
+
   const onSubmit = async (data: ContaFormData) => {
     console.log('📝 Form submitted with data:', data)
+    console.log('📝 Valor type and value:', typeof data.valor, data.valor)
     console.log('📝 User authenticated:', !!user)
     console.log('📝 Session valid:', !!session?.access_token)
+
+    // Verificar se o valor é válido
+    if (isNaN(data.valor) || data.valor <= 0) {
+      console.error('📝 Invalid valor:', data.valor)
+      return
+    }
 
     // Verificações de autenticação mais rigorosas
     if (!user) {
@@ -117,7 +126,9 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
                 isCreating || 
                 !user || 
                 !session?.access_token ||
-                (session.expires_at && session.expires_at * 1000 < Date.now())
+                (session.expires_at && session.expires_at * 1000 < Date.now()) ||
+                isNaN(valor) ||
+                valor <= 0
               }
             >
               {isCreating ? 'Criando...' : 'Criar Conta'}
@@ -132,6 +143,12 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
             {session?.expires_at && session.expires_at * 1000 < Date.now() && (
               <p className="text-sm text-red-500 text-center">
                 Sua sessão expirou. Faça login novamente.
+              </p>
+            )}
+
+            {(isNaN(valor) || valor <= 0) && (
+              <p className="text-sm text-red-500 text-center">
+                Por favor, insira um valor válido maior que zero.
               </p>
             )}
           </form>
