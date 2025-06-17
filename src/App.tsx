@@ -17,6 +17,8 @@ import Relatorios from "./pages/Relatorios";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 import Plano from "./pages/Plano";
+import ContasPagar from "./pages/ContasPagar";
+import ContasReceber from "./pages/ContasReceber";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +116,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Lembretes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contas-pagar"
+        element={
+          <ProtectedRoute>
+            <ContasPagar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contas-receber"
+        element={
+          <ProtectedRoute>
+            <ContasReceber />
           </ProtectedRoute>
         }
       />

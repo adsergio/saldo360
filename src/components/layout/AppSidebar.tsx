@@ -1,6 +1,5 @@
 
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Home, CreditCard, Calendar, User, LogOut, Tag, FileText } from 'lucide-react'
+import { Calendar, CreditCard, FileText, Home, Plus, Settings, TrendingUp, User, Receipt, DollarSign } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -10,125 +9,98 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import { useAuth } from '@/hooks/useAuth'
-import { Button } from '@/components/ui/button'
-import { UserProfile } from './UserProfile'
-import { useTheme } from '@/hooks/useTheme'
+} from "@/components/ui/sidebar"
+import { useLocation, Link } from "react-router-dom"
 
-const items = [
-  { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Transações', url: '/transacoes', icon: CreditCard },
-  { title: 'Categorias', url: '/categorias', icon: Tag },
-  { title: 'Cartão de Crédito', url: '/cartoes', icon: CreditCard },
-  { title: 'Relatórios', url: '/relatorios', icon: FileText },
-  { title: 'Lembretes', url: '/lembretes', icon: Calendar },
-  { title: 'Perfil', url: '/perfil', icon: User },
+const menuItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: Home,
+  },
+  {
+    title: "Transações",
+    url: "/transacoes",
+    icon: Plus,
+  },
+  {
+    title: "Contas a Pagar",
+    url: "/contas-pagar",
+    icon: Receipt,
+  },
+  {
+    title: "Contas a Receber",
+    url: "/contas-receber",
+    icon: DollarSign,
+  },
+  {
+    title: "Categorias",
+    url: "/categorias",
+    icon: FileText,
+  },
+  {
+    title: "Cartões",
+    url: "/cartoes",
+    icon: CreditCard,
+  },
+  {
+    title: "Relatórios",
+    url: "/relatorios",
+    icon: TrendingUp,
+  },
+  {
+    title: "Lembretes",
+    url: "/lembretes",
+    icon: Calendar,
+  },
 ]
 
 export function AppSidebar() {
-  const { state } = useSidebar()
   const location = useLocation()
-  const navigate = useNavigate()
-  const { signOut } = useAuth()
-  const { theme } = useTheme()
-  const currentPath = location.pathname
-
-  const isActive = (path: string) => currentPath === path
-  const isCollapsed = state === "collapsed"
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-      navigate('/auth')
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
-
-  // Determine which logo to use based on theme
-  const getLogoSrc = () => {
-    if (theme === 'dark') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png' // logo-black
-      
-    } else if (theme === 'light') {
-      return 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png' // logo-white
-    } else {
-      // System theme - check actual computed theme
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      return isDark 
-        ? 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-claro_rdfyfz.png'
-        : 'https://res.cloudinary.com/djs0ny9pw/image/upload/v1748909829/logo-escuro_ar6vjs.png'
-    }
-  }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center justify-center">
-          {isCollapsed ? (
-            <div className="min-w-8">
-              <img 
-                src="/lovable-uploads/a5a40de7-4096-4a32-af0c-76fe03ec72f7.png"
-                alt="FinanceFlow Icon" 
-                className="h-8 w-8"
-              />
-            </div>
-          ) : (
-            <img 
-              src={getLogoSrc()} 
-              alt="FinanceFlow" 
-              className="h-8 w-auto"
-            />
-          )}
-        </div>
-      </SidebarHeader>
-
+    <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-            Menu
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    className={`${
-                      isActive(item.url)
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'hover:bg-accent'
-                    }`}
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={location.pathname === item.url}
                   >
-                    <NavLink to={item.url} end>
-                      <item.icon className="h-4 w-4" />
+                    <Link to={item.url}>
+                      <item.icon />
                       <span>{item.title}</span>
-                    </NavLink>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="p-4 space-y-4">
-        <UserProfile />
         
-        <Button
-          onClick={handleSignOut}
-          variant="outline"
-          size={isCollapsed ? "icon" : "default"}
-          className="w-full"
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="group-data-[collapsible=icon]:hidden ml-2">Sair</span>
-        </Button>
-      </SidebarFooter>
+        <SidebarGroup>
+          <SidebarGroupLabel>Configurações</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={location.pathname === "/perfil"}
+                >
+                  <Link to="/perfil">
+                    <User />
+                    <span>Perfil</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
     </Sidebar>
   )
 }
