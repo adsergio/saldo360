@@ -11,6 +11,14 @@ export interface Cartao {
   data_vencimento: string
 }
 
+export interface FaturaFechada {
+  id: string
+  cartao_id: string
+  valor_total: number
+  data_fechamento: string
+  descricao: string
+}
+
 export function useCartoes() {
   const { user } = useAuth()
 
@@ -35,8 +43,31 @@ export function useCartoes() {
     enabled: !!user?.id,
   })
 
+  // Query separada para buscar faturas fechadas
+  const { data: faturasFechadas } = useQuery({
+    queryKey: ['faturas-fechadas', user?.id],
+    queryFn: async () => {
+      if (!user) return []
+
+      const { data, error } = await supabase
+        .from('faturas_fechadas')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('data_fechamento', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching faturas fechadas:', error)
+        throw error
+      }
+
+      return data as FaturaFechada[]
+    },
+    enabled: !!user?.id,
+  })
+
   return {
     cartoes: cartoes || [],
+    faturasFechadas: faturasFechadas || [],
     isLoading,
     error
   }
