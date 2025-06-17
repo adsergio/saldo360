@@ -90,11 +90,17 @@ export function useDashboardData(periodo: string) {
   const summaryData = useMemo(() => {
     const receitas = transacoes
       .filter(t => t.tipo === 'receita')
-      .reduce((acc, t) => acc + (Number(t.valor) || 0), 0)
+      .reduce((acc, t) => {
+        const valor = Number(t.valor) || 0
+        return acc + valor
+      }, 0)
     
     const despesas = transacoes
       .filter(t => t.tipo === 'despesa')
-      .reduce((acc, t) => acc + (Number(t.valor) || 0), 0)
+      .reduce((acc, t) => {
+        const valor = Number(t.valor) || 0
+        return acc + valor
+      }, 0)
     
     const saldo = receitas - despesas
 
@@ -115,7 +121,7 @@ export function useDashboardData(periodo: string) {
       }, {} as Record<string, number>)
 
     const categoryData = Object.entries(gastosPorCategoria)
-      .map(([categoria, valor]) => ({ categoria, valor }))
+      .map(([categoria, valor]) => ({ categoria, valor: Number(valor) }))
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 10) // Top 10 categorias
 
