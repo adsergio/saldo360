@@ -80,7 +80,7 @@ export function InstallmentModal({
             <Label>Valor Total</Label>
             <CurrencyInput
               value={totalValue}
-              onChange={() => {}}
+              onValueChange={() => {}}
               disabled
             />
           </div>
@@ -89,7 +89,7 @@ export function InstallmentModal({
             <Label>Valor por Parcela</Label>
             <CurrencyInput
               value={installmentValue}
-              onChange={() => {}}
+              onValueChange={() => {}}
               disabled
             />
           </div>

@@ -40,7 +40,7 @@ export function TransactionFormFields({ formData, setFormData }: TransactionForm
           <Label htmlFor="valor">Valor</Label>
           <CurrencyInput
             value={formData.valor}
-            onChange={(value) => setFormData({...formData, valor: value})}
+            onValueChange={(value) => setFormData({...formData, valor: value})}
             required
           />
         </div>
