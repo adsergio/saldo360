@@ -24,17 +24,20 @@ const calcularPeriodoCiclo = (dataVencimento: string) => {
   const hoje = new Date()
   const diaVencimento = parseInt(dataVencimento)
   
-  let dataLimite: Date
+  // Criar data de vencimento do mês atual
+  const vencimentoMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), diaVencimento)
   
-  // Se ainda não passou do dia de vencimento no mês atual, o ciclo vai até o vencimento do mês atual
-  if (hoje.getDate() <= diaVencimento) {
-    dataLimite = new Date(hoje.getFullYear(), hoje.getMonth(), diaVencimento)
+  let dataLimiteCiclo: Date
+  
+  // Se já passou do dia de vencimento no mês atual, usar a data de vencimento que já passou
+  if (hoje > vencimentoMesAtual) {
+    dataLimiteCiclo = vencimentoMesAtual
   } else {
-    // Se já passou do dia de vencimento, o próximo ciclo vai até o vencimento do próximo mês
-    dataLimite = new Date(hoje.getFullYear(), hoje.getMonth() + 1, diaVencimento)
+    // Se ainda não chegou no vencimento do mês atual, usar o vencimento do mês anterior
+    dataLimiteCiclo = new Date(hoje.getFullYear(), hoje.getMonth() - 1, diaVencimento)
   }
   
-  return dataLimite.toISOString().split('T')[0] // Retorna no formato YYYY-MM-DD
+  return dataLimiteCiclo.toISOString().split('T')[0] // Retorna no formato YYYY-MM-DD
 }
 
 export function useCartaoFatura() {
@@ -69,6 +72,8 @@ export function useCartaoFatura() {
       for (const cartao of cartoes) {
         const dataLimiteCiclo = calcularPeriodoCiclo(cartao.data_vencimento)
         
+        console.log(`Cartão ${cartao.id} - Data limite do ciclo: ${dataLimiteCiclo}`)
+        
         const { data: transacoes, error: transacoesError } = await supabase
           .from('transacoes')
           .select('valor')
@@ -76,7 +81,8 @@ export function useCartaoFatura() {
           .eq('cartao_id', cartao.id)
           .eq('tipo', 'despesa')
           .eq('incluida_na_fatura', false)
-          .lte('quando', dataLimiteCiclo)
+          .gt('quando', dataLimiteCiclo) // Transações APÓS a última data de vencimento
+          .lte('quando', new Date().toISOString().split('T')[0]) // Até hoje
 
         if (transacoesError) {
           console.error('Error fetching transações for cartão:', cartao.id, transacoesError)
@@ -85,6 +91,8 @@ export function useCartaoFatura() {
 
         if (transacoes && transacoes.length > 0) {
           const totalGastos = transacoes.reduce((acc, t) => acc + (Number(t.valor) || 0), 0)
+          
+          console.log(`Cartão ${cartao.id} - ${transacoes.length} transações, total: R$ ${totalGastos}`)
           
           resumos.push({
             cartao_id: cartao.id,
@@ -126,7 +134,8 @@ export function useCartaoFatura() {
         .eq('cartao_id', cartaoId)
         .eq('tipo', 'despesa')
         .eq('incluida_na_fatura', false)
-        .lte('quando', dataLimiteCiclo)
+        .gt('quando', dataLimiteCiclo) // Transações APÓS a última data de vencimento
+        .lte('quando', new Date().toISOString().split('T')[0]) // Até hoje
 
       if (transacoesError) {
         console.error('Error fetching pending transactions:', transacoesError)
