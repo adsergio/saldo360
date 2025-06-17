@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { useCategories } from '@/hooks/useCategories'
-import { useContas, type ContaFormData } from '@/hooks/useContas'
+import { useContas } from '@/hooks/useContas'
 import { useAuth } from '@/hooks/useAuth'
+import type { ContaFormData } from '@/types/conta'
 
 const contaSchema = z.object({
   tipo: z.enum(['pagar', 'receber']),

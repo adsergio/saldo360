@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://quuguxkottzbdjzqherd.supabase.co'
@@ -25,6 +24,11 @@ export const clearAuthData = () => {
       localStorage.removeItem(key)
     }
   })
+  
+  // Força recarregamento completo da página para limpar o estado
+  setTimeout(() => {
+    window.location.reload()
+  }, 100)
 }
 
 export type Database = {

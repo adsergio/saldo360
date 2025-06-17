@@ -1,3 +1,4 @@
+
 import { CalendarDays, CheckCircle, AlertCircle, Clock, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -5,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/utils/currency'
-import { useContas, type Conta } from '@/hooks/useContas'
+import { useContas } from '@/hooks/useContas'
+import type { Conta } from '@/types/conta'
 
 interface ContasCardProps {
   conta: Conta & {
