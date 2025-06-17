@@ -21,19 +21,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('🔐 AuthProvider: Initializing auth state...')
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id)
+        console.log('🔐 Auth state change:', event, 'User ID:', session?.user?.id)
+        console.log('🔐 Session access token present:', !!session?.access_token)
+        console.log('🔐 Session expires at:', session?.expires_at)
+        
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
+        
+        // Test auth.uid() availability when session changes
+        if (session?.user) {
+          console.log('🔐 Testing auth.uid() availability...')
+          try {
+            const { data: testData, error: testError } = await supabase
+              .from('categorias')
+              .select('count(*)')
+              .limit(1)
+            
+            if (testError) {
+              console.error('🔐 Auth test failed:', testError)
+            } else {
+              console.log('🔐 Auth test successful:', testData)
+            }
+          } catch (error) {
+            console.error('🔐 Auth test exception:', error)
+          }
+        }
       }
     )
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id)
+      console.log('🔐 Initial session check:', session?.user?.id)
+      console.log('🔐 Initial session access token present:', !!session?.access_token)
+      
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -43,14 +69,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔐 Attempting sign in for:', email)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
+    if (error) {
+      console.error('🔐 Sign in error:', error)
+    } else {
+      console.log('🔐 Sign in successful')
+    }
     return { error }
   }
 
   const signUp = async (email: string, password: string, nome?: string) => {
+    console.log('🔐 Attempting sign up for:', email)
     const redirectUrl = `${window.location.origin}/`
     
     const { error } = await supabase.auth.signUp({
@@ -63,19 +96,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     })
+    if (error) {
+      console.error('🔐 Sign up error:', error)
+    } else {
+      console.log('🔐 Sign up successful')
+    }
     return { error }
   }
 
   const signOut = async () => {
+    console.log('🔐 Attempting sign out')
     await supabase.auth.signOut()
+    console.log('🔐 Sign out completed')
   }
 
   const resetPassword = async (email: string) => {
+    console.log('🔐 Attempting password reset for:', email)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth`
     })
     return { error }
   }
+
+  // Log current auth state periodically for debugging
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user) {
+        console.log('🔐 Auth status check - User ID:', user.id, 'Session valid:', !!session?.access_token)
+      }
+    }, 30000) // Every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [user, session])
 
   return (
     <AuthContext.Provider

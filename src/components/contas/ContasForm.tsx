@@ -34,7 +34,7 @@ interface ContasFormProps {
 export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const { categories } = useCategories()
   const { createConta } = useContas()
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const [valor, setValor] = useState<number>(0)
 
   const {
@@ -55,17 +55,30 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const recorrente = watch('recorrente')
 
   const onSubmit = async (data: ContaFormData) => {
-    console.log('Form submitted with data:', data)
-    console.log('User authenticated:', !!user)
-    console.log('Valor from state:', valor)
+    console.log('📝 Form submitted with data:', data)
+    console.log('📝 User authenticated:', !!user)
+    console.log('📝 Session valid:', !!session?.access_token)
+    console.log('📝 Valor from state:', valor)
 
+    // Verificações de autenticação mais rigorosas
     if (!user) {
-      console.error('User not authenticated')
+      console.error('📝 User not authenticated')
+      return
+    }
+
+    if (!session?.access_token) {
+      console.error('📝 No valid session')
+      return
+    }
+
+    // Verificar se a sessão não expirou
+    if (session.expires_at && session.expires_at * 1000 < Date.now()) {
+      console.error('📝 Session expired')
       return
     }
 
     if (valor <= 0) {
-      console.error('Invalid valor:', valor)
+      console.error('📝 Invalid valor:', valor)
       return
     }
 
@@ -78,11 +91,11 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
       setValor(0)
       onSuccess?.()
     } catch (error) {
-      console.error('Error creating conta:', error)
+      console.error('📝 Error creating conta:', error)
     }
   }
 
-  // Se não há categorias, exibir mensagem
+  // Verificar se há categorias
   if (categories.length === 0) {
     return (
       <Card>
@@ -95,6 +108,29 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
           <div className="text-center py-8">
             <p className="text-muted-foreground">
               Você precisa criar pelo menos uma categoria antes de adicionar contas.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Verificar se o usuário está autenticado
+  if (!user || !session?.access_token) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Nova Conta a {tipo === 'pagar' ? 'Pagar' : 'Receber'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Você precisa estar logado para criar contas.
+            </p>
+            <p className="text-sm text-red-500 mt-2">
+              Sessão inválida ou expirada. Faça login novamente.
             </p>
           </div>
         </CardContent>
@@ -208,14 +244,26 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
           <Button 
             type="submit" 
             className="w-full"
-            disabled={createConta.isPending || !user || valor <= 0}
+            disabled={
+              createConta.isPending || 
+              !user || 
+              !session?.access_token ||
+              valor <= 0 ||
+              (session.expires_at && session.expires_at * 1000 < Date.now())
+            }
           >
             {createConta.isPending ? 'Criando...' : 'Criar Conta'}
           </Button>
 
-          {!user && (
+          {(!user || !session?.access_token) && (
             <p className="text-sm text-red-500 text-center">
               Você precisa estar logado para criar contas.
+            </p>
+          )}
+
+          {session?.expires_at && session.expires_at * 1000 < Date.now() && (
+            <p className="text-sm text-red-500 text-center">
+              Sua sessão expirou. Faça login novamente.
             </p>
           )}
         </form>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -34,18 +33,19 @@ export interface ContaFormData {
 }
 
 export function useContas(tipo?: 'pagar' | 'receber') {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const queryClient = useQueryClient()
 
   const { data: contas = [], isLoading } = useQuery({
     queryKey: ['contas', user?.id, tipo],
     queryFn: async () => {
       if (!user) {
-        console.log('No user found, returning empty array')
+        console.log('📊 No user found, returning empty array')
         return []
       }
       
-      console.log('Fetching contas for user:', user.id, 'tipo:', tipo)
+      console.log('📊 Fetching contas for user:', user.id, 'tipo:', tipo)
+      console.log('📊 Session valid:', !!session?.access_token)
       
       let query = supabase
         .from('contas')
@@ -66,13 +66,12 @@ export function useContas(tipo?: 'pagar' | 'receber') {
       const { data, error } = await query
 
       if (error) {
-        console.error('Error fetching contas:', error)
+        console.error('📊 Error fetching contas:', error)
         throw error
       }
 
-      console.log('Fetched contas:', data?.length || 0, 'records')
+      console.log('📊 Fetched contas:', data?.length || 0, 'records')
 
-      // Garantir que o tipo seja corretamente tipado
       return (data || []).map(conta => ({
         ...conta,
         tipo: conta.tipo as 'pagar' | 'receber',
@@ -85,15 +84,42 @@ export function useContas(tipo?: 'pagar' | 'receber') {
 
   const createConta = useMutation({
     mutationFn: async (contaData: ContaFormData) => {
+      console.log('💰 Starting conta creation process...')
+      console.log('💰 User authenticated:', !!user)
+      console.log('💰 User ID:', user?.id)
+      console.log('💰 Session valid:', !!session?.access_token)
+      console.log('💰 Session expires at:', session?.expires_at)
+      console.log('💰 Data to insert:', contaData)
+
       if (!user) {
-        console.error('User not authenticated')
-        throw new Error('Usuário não autenticado')
+        console.error('💰 User not authenticated')
+        throw new Error('Usuário não autenticado. Faça login novamente.')
       }
 
-      console.log('Creating conta with data:', contaData)
-      console.log('User ID:', user.id)
+      if (!session?.access_token) {
+        console.error('💰 No valid session found')
+        throw new Error('Sessão inválida. Faça login novamente.')
+      }
 
-      // Validações antes de enviar
+      // Teste de autenticação simples antes de prosseguir
+      console.log('💰 Testing authentication with simple query...')
+      try {
+        const { data: authTest, error: authError } = await supabase
+          .from('categorias')
+          .select('count(*)')
+          .limit(1)
+        
+        if (authError) {
+          console.error('💰 Auth test failed:', authError)
+          throw new Error('Falha na autenticação. Faça login novamente.')
+        }
+        console.log('💰 Auth test passed:', authTest)
+      } catch (error) {
+        console.error('💰 Auth test exception:', error)
+        throw new Error('Erro de autenticação. Verifique sua conexão.')
+      }
+
+      // Validações de dados
       if (!contaData.descricao || contaData.descricao.trim() === '') {
         throw new Error('Descrição é obrigatória')
       }
@@ -111,25 +137,29 @@ export function useContas(tipo?: 'pagar' | 'receber') {
       }
 
       // Verificar se a categoria existe e pertence ao usuário
+      console.log('💰 Validating category:', contaData.categoria_id)
       const { data: categoria, error: categoriaError } = await supabase
         .from('categorias')
-        .select('id')
+        .select('id, nome')
         .eq('id', contaData.categoria_id)
         .eq('userid', user.id)
         .single()
 
       if (categoriaError || !categoria) {
-        console.error('Categoria validation error:', categoriaError)
-        throw new Error('Categoria selecionada não é válida')
+        console.error('💰 Categoria validation error:', categoriaError)
+        throw new Error('Categoria selecionada não é válida ou não pertence ao usuário')
       }
+
+      console.log('💰 Category validation passed:', categoria)
 
       const insertData = {
         ...contaData,
         user_id: user.id,
       }
 
-      console.log('Inserting data:', insertData)
+      console.log('💰 Final data to insert:', insertData)
 
+      // Tentar inserir os dados
       const { data, error } = await supabase
         .from('contas')
         .insert(insertData)
@@ -137,12 +167,22 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         .single()
 
       if (error) {
-        console.error('Database error creating conta:', error)
-        console.error('Error details:', error.message, error.details, error.hint)
+        console.error('💰 Database error creating conta:', error)
+        console.error('💰 Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        
+        if (error.message.includes('row-level security')) {
+          throw new Error('Erro de permissão: Usuário não tem permissão para criar contas. Faça login novamente.')
+        }
+        
         throw new Error(`Erro ao criar conta: ${error.message}`)
       }
 
-      console.log('Conta created successfully:', data)
+      console.log('💰 Conta created successfully:', data)
       return data
     },
     onSuccess: () => {
@@ -153,7 +193,7 @@ export function useContas(tipo?: 'pagar' | 'receber') {
       })
     },
     onError: (error) => {
-      console.error('Error creating conta:', error)
+      console.error('💰 Error creating conta:', error)
       toast({
         title: 'Erro ao criar conta',
         description: error instanceof Error ? error.message : 'Não foi possível criar a conta. Tente novamente.',
