@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,7 +12,7 @@ import { SubscriptionInfo } from '@/components/profile/SubscriptionInfo'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
-import { Camera, User, Trash2, Settings, CreditCard, Shield } from 'lucide-react'
+import { Camera, User, Trash2, Settings, CreditCard, Shield, LogOut } from 'lucide-react'
 import { validateWhatsAppNumber } from '@/utils/whatsapp'
 import { useNavigate } from 'react-router-dom'
 
@@ -44,6 +43,20 @@ export default function Perfil() {
       fetchProfile()
     }
   }, [user])
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      navigate('/auth')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+      toast({
+        title: "Erro ao sair",
+        description: "Não foi possível fazer logout. Tente novamente.",
+        variant: "destructive",
+      })
+    }
+  }
 
   const fetchProfile = async () => {
     try {
@@ -323,9 +336,22 @@ export default function Perfil() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <div className="text-center md:text-left">
-        <h1 className="text-4xl font-bold tracking-tight">Meu Perfil</h1>
-        <p className="text-muted-foreground mt-2">Gerencie suas informações pessoais, assinatura e configurações de segurança</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="text-center md:text-left">
+          <h1 className="text-4xl font-bold tracking-tight">Meu Perfil</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-muted-foreground">Olá, <span className="font-medium">{profile.nome || user?.email}</span></p>
+          </div>
+          <p className="text-muted-foreground mt-1">Gerencie suas informações pessoais, assinatura e configurações de segurança</p>
+        </div>
+        <Button
+          onClick={handleSignOut}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </Button>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
