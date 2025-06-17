@@ -6,18 +6,17 @@ import { cn } from '@/lib/utils'
 
 interface CurrencyInputProps extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
   value?: string | number
-  onChange?: (value: number) => void
+  onValueChange?: (value: number) => void
 }
 
 const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ className, value, onChange, ...props }, ref) => {
+  ({ className, value, onValueChange, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState('')
 
     React.useEffect(() => {
       if (value !== undefined && value !== null) {
         const numValue = typeof value === 'string' ? parseFloat(value) : value
         if (!isNaN(numValue) && numValue > 0) {
-          // Usar a nova função para formatar valores existentes
           setDisplayValue(formatExistingValue(numValue))
         } else {
           setDisplayValue('')
@@ -32,9 +31,9 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       const formatted = formatCurrencyInput(inputValue)
       setDisplayValue(formatted)
       
-      if (onChange) {
+      if (onValueChange) {
         const numericValue = parseCurrency(formatted)
-        onChange(numericValue)
+        onValueChange(numericValue)
       }
     }
 

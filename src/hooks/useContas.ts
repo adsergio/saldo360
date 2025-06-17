@@ -65,7 +65,13 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         throw error
       }
 
-      return data || []
+      // Garantir que o tipo seja corretamente tipado
+      return (data || []).map(conta => ({
+        ...conta,
+        tipo: conta.tipo as 'pagar' | 'receber',
+        status: conta.status as 'pendente' | 'pago' | 'vencido',
+        frequencia_recorrencia: conta.frequencia_recorrencia as 'mensal' | 'trimestral' | 'anual' | undefined
+      }))
     },
     enabled: !!user,
   })
