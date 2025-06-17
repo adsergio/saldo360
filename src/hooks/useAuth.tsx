@@ -1,7 +1,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { supabase, clearAuthData } from '@/lib/supabase'
 
 interface AuthContextType {
   user: User | null
@@ -21,12 +21,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log('🔐 AuthProvider: Initializing auth state...')
+    console.log('🔐 AuthProvider: Initializing unified auth state...')
+    
+    // Limpar dados corrompidos na inicialização
+    const checkAndClearCorruptedData = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.warn('🔐 Session check failed, clearing corrupted data:', error)
+          clearAuthData()
+        }
+      } catch (error) {
+        console.warn('🔐 Auth check exception, clearing corrupted data:', error)
+        clearAuthData()
+      }
+    }
+    
+    checkAndClearCorruptedData()
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state change:', event, 'User ID:', session?.user?.id)
+        console.log('🔐 Unified auth state change:', event, 'User ID:', session?.user?.id)
         console.log('🔐 Session access token present:', !!session?.access_token)
         console.log('🔐 Session expires at:', session?.expires_at)
         
@@ -36,11 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Test auth.uid() availability when session changes
         if (session?.user) {
-          console.log('🔐 Testing auth.uid() availability with new auth configuration...')
+          console.log('🔐 Testing auth.uid() availability with unified client...')
           try {
-            // Force session refresh to ensure token is valid
-            await supabase.auth.refreshSession()
-            
+            // Test query that uses auth.uid()
             const { data: testData, error: testError } = await supabase
               .from('categorias')
               .select('count(*)')
@@ -52,11 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
               if (refreshError) {
                 console.error('🔐 Session refresh failed:', refreshError)
+                clearAuthData()
               } else {
                 console.log('🔐 Session refresh successful:', !!refreshData.session)
               }
             } else {
-              console.log('🔐 Auth test successful:', testData)
+              console.log('🔐 Auth test successful with unified client:', testData)
             }
           } catch (error) {
             console.error('🔐 Auth test exception:', error)
@@ -67,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 Initial session check:', session?.user?.id)
+      console.log('🔐 Initial session check (unified):', session?.user?.id)
       console.log('🔐 Initial session access token present:', !!session?.access_token)
       
       setSession(session)
@@ -116,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('🔐 Attempting sign out')
+    clearAuthData()
     await supabase.auth.signOut()
     console.log('🔐 Sign out completed')
   }
@@ -132,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (user) {
-        console.log('🔐 Auth status check - User ID:', user.id, 'Session valid:', !!session?.access_token)
+        console.log('🔐 Auth status check (unified) - User ID:', user.id, 'Session valid:', !!session?.access_token)
       }
     }, 30000) // Every 30 seconds
 

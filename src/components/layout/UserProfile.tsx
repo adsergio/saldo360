@@ -23,16 +23,22 @@ export function UserProfile() {
 
   const fetchProfile = async () => {
     try {
+      console.log('👤 Fetching user profile with unified client...')
       const { data, error } = await supabase
         .from('profiles')
         .select('nome, phone, avatar_url')
         .eq('id', user?.id)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('👤 Error fetching profile:', error)
+        throw error
+      }
+      
+      console.log('👤 Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error)
+      console.error('👤 Erro ao carregar perfil:', error)
     }
   }
 

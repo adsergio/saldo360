@@ -1,130 +1,127 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
+import { fetchContas, createConta, updateConta, markContaAsPaid, deleteConta } from '@/services/contasApi'
 import { toast } from '@/hooks/use-toast'
-import { 
-  fetchContas, 
-  createConta as createContaApi, 
-  updateConta as updateContaApi, 
-  markContaAsPaid as markContaAsPaidApi, 
-  deleteConta as deleteContaApi 
-} from '@/services/contasApi'
-import type { Conta, ContaFormData } from '@/types/conta'
-
-export type { Conta, ContaFormData }
+import type { ContaFormData } from '@/types/conta'
 
 export function useContas(tipo?: 'pagar' | 'receber') {
-  const { user, session } = useAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
-  const { data: contas = [], isLoading } = useQuery({
+  const contasQuery = useQuery({
     queryKey: ['contas', user?.id, tipo],
-    queryFn: async () => {
-      if (!user) {
-        console.log('📊 No user found, returning empty array')
-        return []
+    queryFn: () => {
+      if (!user?.id) {
+        console.error('📊 No user ID available for fetching contas')
+        throw new Error('Usuário não autenticado')
       }
-      
-      console.log('📊 Session valid:', !!session?.access_token)
+      console.log('📊 Fetching contas with unified client, user:', user.id, 'tipo:', tipo)
       return fetchContas(user.id, tipo)
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   })
 
-  const createConta = useMutation({
-    mutationFn: async (contaData: ContaFormData) => {
-      if (!user) {
-        console.error('💰 User not authenticated')
-        throw new Error('Usuário não autenticado. Faça login novamente.')
+  const createContaMutation = useMutation({
+    mutationFn: (contaData: ContaFormData) => {
+      if (!user?.id) {
+        console.error('💰 No user ID available for creating conta')
+        throw new Error('Usuário não autenticado')
       }
-
-      if (!session?.access_token) {
-        console.error('💰 No valid session found')
-        throw new Error('Sessão inválida. Faça login novamente.')
-      }
-
-      console.log('💰 Creating conta with enhanced auth validation...')
-      return createContaApi(contaData, user.id)
+      console.log('💰 Creating conta with unified client, user:', user.id)
+      return createConta(contaData, user.id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contas'] })
       toast({
-        title: 'Conta criada com sucesso!',
-        description: 'A conta foi adicionada ao sistema.',
+        title: "Conta criada com sucesso!",
+        description: "A conta foi adicionada à sua lista.",
       })
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('💰 Error creating conta:', error)
       toast({
-        title: 'Erro ao criar conta',
-        description: error instanceof Error ? error.message : 'Não foi possível criar a conta. Tente novamente.',
-        variant: 'destructive',
+        title: "Erro ao criar conta",
+        description: error.message,
+        variant: "destructive",
       })
     },
   })
 
-  const updateConta = useMutation({
-    mutationFn: async ({ id, ...contaData }: Partial<Conta> & { id: string }) => {
-      return updateContaApi(id, contaData)
+  const updateContaMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ContaFormData> }) => {
+      console.log('💰 Updating conta with unified client:', id)
+      return updateConta(id, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contas'] })
       toast({
-        title: 'Conta atualizada com sucesso!',
+        title: "Conta atualizada com sucesso!",
       })
     },
-    onError: (error) => {
-      console.error('Error updating conta:', error)
+    onError: (error: Error) => {
+      console.error('💰 Error updating conta:', error)
       toast({
-        title: 'Erro ao atualizar conta',
-        description: 'Não foi possível atualizar a conta. Tente novamente.',
-        variant: 'destructive',
+        title: "Erro ao atualizar conta",
+        description: error.message,
+        variant: "destructive",
       })
     },
   })
 
-  const marcarComoPago = useMutation({
-    mutationFn: markContaAsPaidApi,
+  const markAsPaidMutation = useMutation({
+    mutationFn: (id: string) => {
+      console.log('💰 Marking conta as paid with unified client:', id)
+      return markContaAsPaid(id)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contas'] })
       toast({
-        title: 'Conta marcada como paga!',
+        title: "Conta marcada como paga!",
       })
     },
-    onError: (error) => {
-      console.error('Error marking conta as paid:', error)
+    onError: (error: Error) => {
+      console.error('💰 Error marking conta as paid:', error)
       toast({
-        title: 'Erro ao marcar conta como paga',
-        description: 'Não foi possível atualizar o status da conta.',
-        variant: 'destructive',
+        title: "Erro ao marcar conta como paga",
+        description: error.message,
+        variant: "destructive",
       })
     },
   })
 
-  const deleteConta = useMutation({
-    mutationFn: deleteContaApi,
+  const deleteContaMutation = useMutation({
+    mutationFn: (id: string) => {
+      console.log('💰 Deleting conta with unified client:', id)
+      return deleteConta(id)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contas'] })
       toast({
-        title: 'Conta excluída com sucesso!',
+        title: "Conta excluída com sucesso!",
       })
     },
-    onError: (error) => {
-      console.error('Error deleting conta:', error)
+    onError: (error: Error) => {
+      console.error('💰 Error deleting conta:', error)
       toast({
-        title: 'Erro ao excluir conta',
-        description: 'Não foi possível excluir a conta. Tente novamente.',
-        variant: 'destructive',
+        title: "Erro ao excluir conta",
+        description: error.message,
+        variant: "destructive",
       })
     },
   })
 
   return {
-    contas,
-    isLoading,
-    createConta,
-    updateConta,
-    marcarComoPago,
-    deleteConta,
+    contas: contasQuery.data || [],
+    isLoading: contasQuery.isLoading,
+    error: contasQuery.error,
+    createConta: createContaMutation.mutate,
+    updateConta: updateContaMutation.mutate,
+    markAsPaid: markAsPaidMutation.mutate,
+    deleteConta: deleteContaMutation.mutate,
+    isCreating: createContaMutation.isPending,
+    isUpdating: updateContaMutation.isPending,
+    isMarkingAsPaid: markAsPaidMutation.isPending,
+    isDeleting: deleteContaMutation.isPending,
   }
 }

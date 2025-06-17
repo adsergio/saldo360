@@ -1,9 +1,10 @@
 
-import { supabase } from '@/integrations/supabase/client'
+import { supabase } from '@/lib/supabase'
 import type { Conta, ContaFormData } from '@/types/conta'
 
 // Function to ensure session is valid before making requests
 async function ensureValidSession() {
+  console.log('💰 Checking session validity with unified client...')
   const { data: { session }, error } = await supabase.auth.getSession()
   
   if (error) {
@@ -30,6 +31,7 @@ async function ensureValidSession() {
     return refreshData.session
   }
   
+  console.log('💰 Session is valid, user ID:', session.user.id)
   return session
 }
 
@@ -62,7 +64,7 @@ export async function fetchContas(userId: string, tipo?: 'pagar' | 'receber') {
     throw error
   }
 
-  console.log('📊 Fetched contas:', data?.length || 0, 'records')
+  console.log('📊 Fetched contas successfully:', data?.length || 0, 'records')
 
   return (data || []).map(conta => ({
     ...conta,
@@ -73,7 +75,7 @@ export async function fetchContas(userId: string, tipo?: 'pagar' | 'receber') {
 }
 
 export async function createConta(contaData: ContaFormData, userId: string) {
-  console.log('💰 Starting conta creation process...')
+  console.log('💰 Starting conta creation process with unified client...')
   console.log('💰 User ID:', userId)
   console.log('💰 Data to insert:', contaData)
 
@@ -149,7 +151,7 @@ export async function createConta(contaData: ContaFormData, userId: string) {
 }
 
 export async function updateConta(id: string, contaData: Partial<Conta>) {
-  console.log('Updating conta:', id, contaData)
+  console.log('💰 Updating conta:', id, contaData)
   
   // Ensure valid session before making request
   await ensureValidSession()
@@ -162,14 +164,16 @@ export async function updateConta(id: string, contaData: Partial<Conta>) {
     .single()
 
   if (error) {
-    console.error('Error updating conta:', error)
+    console.error('💰 Error updating conta:', error)
     throw error
   }
+  
+  console.log('💰 Conta updated successfully:', data)
   return data
 }
 
 export async function markContaAsPaid(id: string) {
-  console.log('Marking conta as paid:', id)
+  console.log('💰 Marking conta as paid:', id)
   
   // Ensure valid session before making request
   await ensureValidSession()
@@ -185,14 +189,16 @@ export async function markContaAsPaid(id: string) {
     .single()
 
   if (error) {
-    console.error('Error marking conta as paid:', error)
+    console.error('💰 Error marking conta as paid:', error)
     throw error
   }
+  
+  console.log('💰 Conta marked as paid successfully:', data)
   return data
 }
 
 export async function deleteConta(id: string) {
-  console.log('Deleting conta:', id)
+  console.log('💰 Deleting conta:', id)
   
   // Ensure valid session before making request
   await ensureValidSession()
@@ -203,7 +209,9 @@ export async function deleteConta(id: string) {
     .eq('id', id)
 
   if (error) {
-    console.error('Error deleting conta:', error)
+    console.error('💰 Error deleting conta:', error)
     throw error
   }
+  
+  console.log('💰 Conta deleted successfully')
 }

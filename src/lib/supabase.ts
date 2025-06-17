@@ -14,6 +14,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Função para limpar dados de autenticação corrompidos
+export const clearAuthData = () => {
+  console.log('🧹 Limpando dados de autenticação corrompidos...')
+  localStorage.removeItem('sb-quuguxkottzbdjzqherd-auth-token')
+  localStorage.removeItem('supabase.auth.token')
+  // Limpar outras chaves relacionadas à autenticação
+  Object.keys(localStorage).forEach(key => {
+    if (key.includes('supabase') || key.includes('auth')) {
+      localStorage.removeItem(key)
+    }
+  })
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -144,6 +157,56 @@ export type Database = {
           userid?: string
           nome?: string
           tags?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      contas: {
+        Row: {
+          id: string
+          user_id: string
+          descricao: string
+          valor: number
+          data_vencimento: string
+          data_pagamento: string | null
+          status: string
+          tipo: string
+          categoria_id: string
+          recorrente: boolean
+          frequencia_recorrencia: string | null
+          observacoes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          descricao: string
+          valor: number
+          data_vencimento: string
+          data_pagamento?: string | null
+          status?: string
+          tipo: string
+          categoria_id: string
+          recorrente?: boolean
+          frequencia_recorrencia?: string | null
+          observacoes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          descricao?: string
+          valor?: number
+          data_vencimento?: string
+          data_pagamento?: string | null
+          status?: string
+          tipo?: string
+          categoria_id?: string
+          recorrente?: boolean
+          frequencia_recorrencia?: string | null
+          observacoes?: string | null
           created_at?: string
           updated_at?: string
         }
