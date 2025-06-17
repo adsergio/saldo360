@@ -36,7 +36,6 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const { categories } = useCategories()
   const { createConta, isCreating } = useContas()
   const { user, session } = useAuth()
-  const [valor, setValor] = useState<number>(0)
 
   const {
     register,
@@ -50,16 +49,17 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
     defaultValues: {
       tipo,
       recorrente: false,
+      valor: 0,
     },
   })
 
   const recorrente = watch('recorrente')
+  const valor = watch('valor')
 
   const onSubmit = async (data: ContaFormData) => {
     console.log('📝 Form submitted with data:', data)
     console.log('📝 User authenticated:', !!user)
     console.log('📝 Session valid:', !!session?.access_token)
-    console.log('📝 Valor from state:', valor)
 
     // Verificações de autenticação mais rigorosas
     if (!user) {
@@ -78,18 +78,9 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
       return
     }
 
-    if (valor <= 0) {
-      console.error('📝 Invalid valor:', valor)
-      return
-    }
-
     try {
-      await createConta({
-        ...data,
-        valor,
-      })
+      await createConta(data)
       reset()
-      setValor(0)
       onSuccess?.()
     } catch (error) {
       console.error('📝 Error creating conta:', error)
@@ -164,14 +155,13 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
             <div className="space-y-2">
               <Label htmlFor="valor">Valor</Label>
               <CurrencyInput
+                {...register('valor', { valueAsNumber: true })}
                 value={valor}
-                onValueChange={setValor}
+                onValueChange={(newValue) => setValue('valor', newValue)}
                 placeholder="R$ 0,00"
               />
-              {(errors.valor || valor <= 0) && (
-                <p className="text-sm text-red-500">
-                  {errors.valor?.message || 'Valor deve ser maior que zero'}
-                </p>
+              {errors.valor && (
+                <p className="text-sm text-red-500">{errors.valor.message}</p>
               )}
             </div>
 
@@ -249,7 +239,6 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
               isCreating || 
               !user || 
               !session?.access_token ||
-              valor <= 0 ||
               (session.expires_at && session.expires_at * 1000 < Date.now())
             }
           >

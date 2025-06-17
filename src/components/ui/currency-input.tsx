@@ -7,10 +7,11 @@ import { cn } from '@/lib/utils'
 interface CurrencyInputProps extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
   value?: string | number
   onValueChange?: (value: number) => void
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ className, value, onValueChange, ...props }, ref) => {
+  ({ className, value, onValueChange, onChange, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState('')
 
     React.useEffect(() => {
@@ -31,9 +32,24 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       const formatted = formatCurrencyInput(inputValue)
       setDisplayValue(formatted)
       
+      // Atualizar o valor numérico
+      const numericValue = parseCurrency(formatted)
+      
+      // Chamar onValueChange se fornecido
       if (onValueChange) {
-        const numericValue = parseCurrency(formatted)
         onValueChange(numericValue)
+      }
+      
+      // Criar um evento sintético para react-hook-form
+      if (onChange) {
+        const syntheticEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            value: numericValue.toString(),
+          },
+        }
+        onChange(syntheticEvent as React.ChangeEvent<HTMLInputElement>)
       }
     }
 
