@@ -36,8 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Test auth.uid() availability when session changes
         if (session?.user) {
-          console.log('🔐 Testing auth.uid() availability...')
+          console.log('🔐 Testing auth.uid() availability with new auth configuration...')
           try {
+            // Force session refresh to ensure token is valid
+            await supabase.auth.refreshSession()
+            
             const { data: testData, error: testError } = await supabase
               .from('categorias')
               .select('count(*)')
@@ -45,6 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (testError) {
               console.error('🔐 Auth test failed:', testError)
+              console.log('🔐 Attempting session refresh...')
+              const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+              if (refreshError) {
+                console.error('🔐 Session refresh failed:', refreshError)
+              } else {
+                console.log('🔐 Session refresh successful:', !!refreshData.session)
+              }
             } else {
               console.log('🔐 Auth test successful:', testData)
             }

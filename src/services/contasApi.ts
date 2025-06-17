@@ -2,8 +2,42 @@
 import { supabase } from '@/integrations/supabase/client'
 import type { Conta, ContaFormData } from '@/types/conta'
 
+// Function to ensure session is valid before making requests
+async function ensureValidSession() {
+  const { data: { session }, error } = await supabase.auth.getSession()
+  
+  if (error) {
+    console.error('💰 Session check error:', error)
+    throw new Error('Erro de autenticação. Faça login novamente.')
+  }
+  
+  if (!session) {
+    console.error('💰 No active session found')
+    throw new Error('Sessão não encontrada. Faça login novamente.')
+  }
+  
+  // Check if session is expired
+  if (session.expires_at && session.expires_at * 1000 < Date.now()) {
+    console.log('💰 Session expired, attempting refresh...')
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+    
+    if (refreshError || !refreshData.session) {
+      console.error('💰 Session refresh failed:', refreshError)
+      throw new Error('Sessão expirada. Faça login novamente.')
+    }
+    
+    console.log('💰 Session refreshed successfully')
+    return refreshData.session
+  }
+  
+  return session
+}
+
 export async function fetchContas(userId: string, tipo?: 'pagar' | 'receber') {
   console.log('📊 Fetching contas for user:', userId, 'tipo:', tipo)
+  
+  // Ensure valid session before making request
+  await ensureValidSession()
   
   let query = supabase
     .from('contas')
@@ -42,6 +76,10 @@ export async function createConta(contaData: ContaFormData, userId: string) {
   console.log('💰 Starting conta creation process...')
   console.log('💰 User ID:', userId)
   console.log('💰 Data to insert:', contaData)
+
+  // Ensure valid session before making request
+  const session = await ensureValidSession()
+  console.log('💰 Session validation passed, user:', session.user.id)
 
   // Validações de dados
   if (!contaData.descricao || contaData.descricao.trim() === '') {
@@ -113,6 +151,9 @@ export async function createConta(contaData: ContaFormData, userId: string) {
 export async function updateConta(id: string, contaData: Partial<Conta>) {
   console.log('Updating conta:', id, contaData)
   
+  // Ensure valid session before making request
+  await ensureValidSession()
+  
   const { data, error } = await supabase
     .from('contas')
     .update(contaData)
@@ -129,6 +170,9 @@ export async function updateConta(id: string, contaData: Partial<Conta>) {
 
 export async function markContaAsPaid(id: string) {
   console.log('Marking conta as paid:', id)
+  
+  // Ensure valid session before making request
+  await ensureValidSession()
   
   const { data, error } = await supabase
     .from('contas')
@@ -149,6 +193,9 @@ export async function markContaAsPaid(id: string) {
 
 export async function deleteConta(id: string) {
   console.log('Deleting conta:', id)
+  
+  // Ensure valid session before making request
+  await ensureValidSession()
   
   const { error } = await supabase
     .from('contas')

@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
-import { supabase } from '@/integrations/supabase/client'
 import { 
   fetchContas, 
   createConta as createContaApi, 
@@ -44,24 +43,7 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         throw new Error('Sessão inválida. Faça login novamente.')
       }
 
-      // Teste de autenticação simples antes de prosseguir
-      console.log('💰 Testing authentication with simple query...')
-      try {
-        const { data: authTest, error: authError } = await supabase
-          .from('categorias')
-          .select('count(*)')
-          .limit(1)
-        
-        if (authError) {
-          console.error('💰 Auth test failed:', authError)
-          throw new Error('Falha na autenticação. Faça login novamente.')
-        }
-        console.log('💰 Auth test passed:', authTest)
-      } catch (error) {
-        console.error('💰 Auth test exception:', error)
-        throw new Error('Erro de autenticação. Verifique sua conexão.')
-      }
-
+      console.log('💰 Creating conta with enhanced auth validation...')
       return createContaApi(contaData, user.id)
     },
     onSuccess: () => {
