@@ -19,42 +19,82 @@ export interface CartaoResumo {
   quantidade_transacoes: number
 }
 
+// Função para calcular o período do ciclo atual baseado na data de vencimento
+const calcularPeriodoCiclo = (dataVencimento: string) => {
+  const hoje = new Date()
+  const diaVencimento = parseInt(dataVencimento)
+  
+  let dataLimite: Date
+  
+  // Se ainda não passou do dia de vencimento no mês atual, o ciclo vai até o vencimento do mês atual
+  if (hoje.getDate() <= diaVencimento) {
+    dataLimite = new Date(hoje.getFullYear(), hoje.getMonth(), diaVencimento)
+  } else {
+    // Se já passou do dia de vencimento, o próximo ciclo vai até o vencimento do próximo mês
+    dataLimite = new Date(hoje.getFullYear(), hoje.getMonth() + 1, diaVencimento)
+  }
+  
+  return dataLimite.toISOString().split('T')[0] // Retorna no formato YYYY-MM-DD
+}
+
 export function useCartaoFatura() {
   const { user } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Buscar resumo de gastos por cartão
+  // Buscar resumo de gastos por cartão considerando apenas o ciclo atual
   const { data: resumosCartao = [], isLoading } = useQuery({
     queryKey: ['cartao-resumos', user?.id],
     queryFn: async () => {
       if (!user) return []
 
-      const { data, error } = await supabase
-        .from('transacoes')
-        .select('cartao_id, valor')
-        .eq('userId', user.id)
-        .eq('tipo', 'despesa')
-        .eq('incluida_na_fatura', false)
-        .not('cartao_id', 'is', null)
+      // Primeiro, buscar os cartões com suas datas de vencimento
+      const { data: cartoes, error: cartoesError } = await supabase
+        .from('cartoes_credito')
+        .select('id, data_vencimento')
+        .eq('user_id', user.id)
 
-      if (error) {
-        console.error('Error fetching cartao resumos:', error)
-        throw error
+      if (cartoesError) {
+        console.error('Error fetching cartões:', cartoesError)
+        throw cartoesError
       }
 
-      // Agrupar por cartão
-      const resumos = data.reduce((acc, transacao) => {
-        const cartaoId = transacao.cartao_id!
-        if (!acc[cartaoId]) {
-          acc[cartaoId] = { cartao_id: cartaoId, total_gastos: 0, quantidade_transacoes: 0 }
-        }
-        acc[cartaoId].total_gastos += Number(transacao.valor) || 0
-        acc[cartaoId].quantidade_transacoes += 1
-        return acc
-      }, {} as Record<string, CartaoResumo>)
+      if (!cartoes || cartoes.length === 0) {
+        return []
+      }
 
-      return Object.values(resumos)
+      const resumos: CartaoResumo[] = []
+
+      // Para cada cartão, buscar transações do ciclo atual
+      for (const cartao of cartoes) {
+        const dataLimiteCiclo = calcularPeriodoCiclo(cartao.data_vencimento)
+        
+        const { data: transacoes, error: transacoesError } = await supabase
+          .from('transacoes')
+          .select('valor')
+          .eq('userId', user.id)
+          .eq('cartao_id', cartao.id)
+          .eq('tipo', 'despesa')
+          .eq('incluida_na_fatura', false)
+          .lte('quando', dataLimiteCiclo)
+
+        if (transacoesError) {
+          console.error('Error fetching transações for cartão:', cartao.id, transacoesError)
+          continue
+        }
+
+        if (transacoes && transacoes.length > 0) {
+          const totalGastos = transacoes.reduce((acc, t) => acc + (Number(t.valor) || 0), 0)
+          
+          resumos.push({
+            cartao_id: cartao.id,
+            total_gastos: totalGastos,
+            quantidade_transacoes: transacoes.length
+          })
+        }
+      }
+
+      return resumos
     },
     enabled: !!user?.id,
   })
@@ -64,7 +104,21 @@ export function useCartaoFatura() {
     mutationFn: async ({ cartaoId, nomeCartao }: { cartaoId: string; nomeCartao: string }) => {
       if (!user) throw new Error('Usuário não autenticado')
 
-      // 1. Buscar todas as transações pendentes do cartão
+      // 1. Buscar a data de vencimento do cartão
+      const { data: cartao, error: cartaoError } = await supabase
+        .from('cartoes_credito')
+        .select('data_vencimento')
+        .eq('id', cartaoId)
+        .single()
+
+      if (cartaoError) {
+        console.error('Error fetching cartão:', cartaoError)
+        throw cartaoError
+      }
+
+      const dataLimiteCiclo = calcularPeriodoCiclo(cartao.data_vencimento)
+
+      // 2. Buscar todas as transações pendentes do cartão no ciclo atual
       const { data: transacoesPendentes, error: transacoesError } = await supabase
         .from('transacoes')
         .select('id, valor')
@@ -72,6 +126,7 @@ export function useCartaoFatura() {
         .eq('cartao_id', cartaoId)
         .eq('tipo', 'despesa')
         .eq('incluida_na_fatura', false)
+        .lte('quando', dataLimiteCiclo)
 
       if (transacoesError) {
         console.error('Error fetching pending transactions:', transacoesError)
@@ -79,13 +134,13 @@ export function useCartaoFatura() {
       }
 
       if (!transacoesPendentes || transacoesPendentes.length === 0) {
-        throw new Error('Não há transações pendentes para este cartão')
+        throw new Error('Não há transações pendentes para este cartão no ciclo atual')
       }
 
-      // 2. Calcular valor total
+      // 3. Calcular valor total
       const valorTotal = transacoesPendentes.reduce((acc, t) => acc + (Number(t.valor) || 0), 0)
 
-      // 3. Criar registro de fatura fechada
+      // 4. Criar registro de fatura fechada
       const descricao = `Fatura ${nomeCartao}`
       const { data: faturaFechada, error: faturaError } = await supabase
         .from('faturas_fechadas')
@@ -103,7 +158,7 @@ export function useCartaoFatura() {
         throw faturaError
       }
 
-      // 4. Marcar transações como incluídas na fatura
+      // 5. Marcar transações como incluídas na fatura
       const { error: updateError } = await supabase
         .from('transacoes')
         .update({
@@ -117,7 +172,7 @@ export function useCartaoFatura() {
         throw updateError
       }
 
-      // 5. Criar transação consolidada representando a fatura
+      // 6. Criar transação consolidada representando a fatura
       const { error: insertError } = await supabase
         .from('transacoes')
         .insert({
