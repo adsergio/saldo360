@@ -135,6 +135,54 @@ export type Database = {
           },
         ]
       }
+      faturas_fechadas: {
+        Row: {
+          cartao_id: string
+          created_at: string
+          data_fechamento: string
+          descricao: string
+          id: string
+          updated_at: string
+          user_id: string
+          valor_total: number
+        }
+        Insert: {
+          cartao_id: string
+          created_at?: string
+          data_fechamento?: string
+          descricao: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          valor_total: number
+        }
+        Update: {
+          cartao_id?: string
+          created_at?: string
+          data_fechamento?: string
+          descricao?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_faturas_cartao"
+            columns: ["cartao_id"]
+            isOneToOne: false
+            referencedRelation: "cartoes_credito"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_faturas_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lembretes: {
         Row: {
           created_at: string
@@ -222,7 +270,9 @@ export type Database = {
           created_at: string
           detalhes: string | null
           estabelecimento: string | null
+          fatura_fechada_id: string | null
           id: number
+          incluida_na_fatura: boolean
           installment_group_id: string | null
           installment_number: number | null
           is_installment: boolean | null
@@ -238,7 +288,9 @@ export type Database = {
           created_at?: string
           detalhes?: string | null
           estabelecimento?: string | null
+          fatura_fechada_id?: string | null
           id?: number
+          incluida_na_fatura?: boolean
           installment_group_id?: string | null
           installment_number?: number | null
           is_installment?: boolean | null
@@ -254,7 +306,9 @@ export type Database = {
           created_at?: string
           detalhes?: string | null
           estabelecimento?: string | null
+          fatura_fechada_id?: string | null
           id?: number
+          incluida_na_fatura?: boolean
           installment_group_id?: string | null
           installment_number?: number | null
           is_installment?: boolean | null
@@ -265,6 +319,13 @@ export type Database = {
           valor?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_transacoes_fatura_fechada"
+            columns: ["fatura_fechada_id"]
+            isOneToOne: false
+            referencedRelation: "faturas_fechadas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transacoes_cartao_id_fkey"
             columns: ["cartao_id"]
