@@ -16,19 +16,25 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Função para limpar dados de autenticação corrompidos
 export const clearAuthData = () => {
   console.log('🧹 Limpando dados de autenticação corrompidos...')
-  localStorage.removeItem('sb-quuguxkottzbdjzqherd-auth-token')
-  localStorage.removeItem('supabase.auth.token')
-  // Limpar outras chaves relacionadas à autenticação
+  
+  // Limpar chaves específicas relacionadas à autenticação
+  const authKeys = [
+    'sb-quuguxkottzbdjzqherd-auth-token',
+    'supabase.auth.token'
+  ]
+  
+  authKeys.forEach(key => {
+    localStorage.removeItem(key)
+  })
+  
+  // Limpar outras chaves relacionadas à autenticação de forma mais seletiva
   Object.keys(localStorage).forEach(key => {
-    if (key.includes('supabase') || key.includes('auth')) {
+    if (key.includes('sb-quuguxkottzbdjzqherd') && key.includes('auth')) {
       localStorage.removeItem(key)
     }
   })
   
-  // Força recarregamento completo da página para limpar o estado
-  setTimeout(() => {
-    window.location.reload()
-  }, 100)
+  console.log('🧹 Dados de autenticação limpos')
 }
 
 export type Database = {

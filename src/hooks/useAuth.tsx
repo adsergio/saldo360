@@ -1,12 +1,13 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase, clearAuthData } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  initializing: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, nome?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
@@ -19,78 +20,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initializing, setInitializing] = useState(true)
 
   useEffect(() => {
-    console.log('🔐 AuthProvider: Initializing unified auth state...')
+    console.log('🔐 AuthProvider: Initializing auth state...')
     
-    // Limpar dados corrompidos na inicialização
-    const checkAndClearCorruptedData = async () => {
+    let mounted = true
+
+    const initializeAuth = async () => {
       try {
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return
+            
+            console.log('🔐 Auth state change:', event, 'User ID:', session?.user?.id)
+            console.log('🔐 Session access token present:', !!session?.access_token)
+            
+            setSession(session)
+            setUser(session?.user ?? null)
+            setLoading(false)
+            
+            if (initializing) {
+              setInitializing(false)
+            }
+          }
+        )
+
+        // THEN check for existing session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession()
-        if (error) {
-          console.warn('🔐 Session check failed, clearing corrupted data:', error)
-          clearAuthData()
+        
+        if (mounted) {
+          if (error) {
+            console.error('🔐 Session check failed:', error)
+            setSession(null)
+            setUser(null)
+          } else {
+            console.log('🔐 Initial session check:', currentSession?.user?.id)
+            setSession(currentSession)
+            setUser(currentSession?.user ?? null)
+          }
+          
+          setLoading(false)
+          setInitializing(false)
+        }
+
+        return () => {
+          mounted = false
+          subscription.unsubscribe()
         }
       } catch (error) {
-        console.warn('🔐 Auth check exception, clearing corrupted data:', error)
-        clearAuthData()
-      }
-    }
-    
-    checkAndClearCorruptedData()
-    
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔐 Unified auth state change:', event, 'User ID:', session?.user?.id)
-        console.log('🔐 Session access token present:', !!session?.access_token)
-        console.log('🔐 Session expires at:', session?.expires_at)
-        
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-        
-        // Test auth.uid() availability when session changes
-        if (session?.user) {
-          console.log('🔐 Testing auth.uid() availability with unified client...')
-          try {
-            // Test query that uses auth.uid()
-            const { data: testData, error: testError } = await supabase
-              .from('categorias')
-              .select('count(*)')
-              .limit(1)
-            
-            if (testError) {
-              console.error('🔐 Auth test failed:', testError)
-              console.log('🔐 Attempting session refresh...')
-              const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-              if (refreshError) {
-                console.error('🔐 Session refresh failed:', refreshError)
-                clearAuthData()
-              } else {
-                console.log('🔐 Session refresh successful:', !!refreshData.session)
-              }
-            } else {
-              console.log('🔐 Auth test successful with unified client:', testData)
-            }
-          } catch (error) {
-            console.error('🔐 Auth test exception:', error)
-          }
+        console.error('🔐 Auth initialization error:', error)
+        if (mounted) {
+          setLoading(false)
+          setInitializing(false)
         }
       }
-    )
+    }
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 Initial session check (unified):', session?.user?.id)
-      console.log('🔐 Initial session access token present:', !!session?.access_token)
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+    const cleanup = initializeAuth()
+    return () => {
+      mounted = false
+      cleanup.then(fn => fn?.())
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
@@ -131,8 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('🔐 Attempting sign out')
-    clearAuthData()
     await supabase.auth.signOut()
+    setSession(null)
+    setUser(null)
     console.log('🔐 Sign out completed')
   }
 
@@ -144,23 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  // Log current auth state periodically for debugging
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (user) {
-        console.log('🔐 Auth status check (unified) - User ID:', user.id, 'Session valid:', !!session?.access_token)
-      }
-    }, 30000) // Every 30 seconds
-
-    return () => clearInterval(interval)
-  }, [user, session])
-
   return (
     <AuthContext.Provider
       value={{
         user,
         session,
         loading,
+        initializing,
         signIn,
         signUp,
         signOut,
