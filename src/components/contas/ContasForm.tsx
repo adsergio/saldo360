@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyInput } from '@/components/ui/currency-input'
 import { useCategories } from '@/hooks/useCategories'
 import { useContas, type ContaFormData } from '@/hooks/useContas'
+import { useAuth } from '@/hooks/useAuth'
 
 const contaSchema = z.object({
   tipo: z.enum(['pagar', 'receber']),
@@ -33,6 +34,7 @@ interface ContasFormProps {
 export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const { categories } = useCategories()
   const { createConta } = useContas()
+  const { user } = useAuth()
   const [valor, setValor] = useState<number>(0)
 
   const {
@@ -53,6 +55,20 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const recorrente = watch('recorrente')
 
   const onSubmit = async (data: ContaFormData) => {
+    console.log('Form submitted with data:', data)
+    console.log('User authenticated:', !!user)
+    console.log('Valor from state:', valor)
+
+    if (!user) {
+      console.error('User not authenticated')
+      return
+    }
+
+    if (valor <= 0) {
+      console.error('Invalid valor:', valor)
+      return
+    }
+
     try {
       await createConta.mutateAsync({
         ...data,
@@ -64,6 +80,26 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
     } catch (error) {
       console.error('Error creating conta:', error)
     }
+  }
+
+  // Se não há categorias, exibir mensagem
+  if (categories.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Nova Conta a {tipo === 'pagar' ? 'Pagar' : 'Receber'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Você precisa criar pelo menos uma categoria antes de adicionar contas.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -95,8 +131,10 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
                 onValueChange={setValor}
                 placeholder="R$ 0,00"
               />
-              {errors.valor && (
-                <p className="text-sm text-red-500">{errors.valor.message}</p>
+              {(errors.valor || valor <= 0) && (
+                <p className="text-sm text-red-500">
+                  {errors.valor?.message || 'Valor deve ser maior que zero'}
+                </p>
               )}
             </div>
 
@@ -170,10 +208,16 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
           <Button 
             type="submit" 
             className="w-full"
-            disabled={createConta.isPending}
+            disabled={createConta.isPending || !user || valor <= 0}
           >
             {createConta.isPending ? 'Criando...' : 'Criar Conta'}
           </Button>
+
+          {!user && (
+            <p className="text-sm text-red-500 text-center">
+              Você precisa estar logado para criar contas.
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

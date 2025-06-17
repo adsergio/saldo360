@@ -40,7 +40,12 @@ export function useContas(tipo?: 'pagar' | 'receber') {
   const { data: contas = [], isLoading } = useQuery({
     queryKey: ['contas', user?.id, tipo],
     queryFn: async () => {
-      if (!user) return []
+      if (!user) {
+        console.log('No user found, returning empty array')
+        return []
+      }
+      
+      console.log('Fetching contas for user:', user.id, 'tipo:', tipo)
       
       let query = supabase
         .from('contas')
@@ -65,6 +70,8 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         throw error
       }
 
+      console.log('Fetched contas:', data?.length || 0, 'records')
+
       // Garantir que o tipo seja corretamente tipado
       return (data || []).map(conta => ({
         ...conta,
@@ -78,18 +85,64 @@ export function useContas(tipo?: 'pagar' | 'receber') {
 
   const createConta = useMutation({
     mutationFn: async (contaData: ContaFormData) => {
-      if (!user) throw new Error('User not authenticated')
+      if (!user) {
+        console.error('User not authenticated')
+        throw new Error('Usuário não autenticado')
+      }
+
+      console.log('Creating conta with data:', contaData)
+      console.log('User ID:', user.id)
+
+      // Validações antes de enviar
+      if (!contaData.descricao || contaData.descricao.trim() === '') {
+        throw new Error('Descrição é obrigatória')
+      }
+
+      if (!contaData.valor || contaData.valor <= 0) {
+        throw new Error('Valor deve ser maior que zero')
+      }
+
+      if (!contaData.data_vencimento) {
+        throw new Error('Data de vencimento é obrigatória')
+      }
+
+      if (!contaData.categoria_id) {
+        throw new Error('Categoria é obrigatória')
+      }
+
+      // Verificar se a categoria existe e pertence ao usuário
+      const { data: categoria, error: categoriaError } = await supabase
+        .from('categorias')
+        .select('id')
+        .eq('id', contaData.categoria_id)
+        .eq('userid', user.id)
+        .single()
+
+      if (categoriaError || !categoria) {
+        console.error('Categoria validation error:', categoriaError)
+        throw new Error('Categoria selecionada não é válida')
+      }
+
+      const insertData = {
+        ...contaData,
+        user_id: user.id,
+      }
+
+      console.log('Inserting data:', insertData)
 
       const { data, error } = await supabase
         .from('contas')
-        .insert({
-          ...contaData,
-          user_id: user.id,
-        })
+        .insert(insertData)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error creating conta:', error)
+        console.error('Error details:', error.message, error.details, error.hint)
+        throw new Error(`Erro ao criar conta: ${error.message}`)
+      }
+
+      console.log('Conta created successfully:', data)
       return data
     },
     onSuccess: () => {
@@ -103,7 +156,7 @@ export function useContas(tipo?: 'pagar' | 'receber') {
       console.error('Error creating conta:', error)
       toast({
         title: 'Erro ao criar conta',
-        description: 'Não foi possível criar a conta. Tente novamente.',
+        description: error instanceof Error ? error.message : 'Não foi possível criar a conta. Tente novamente.',
         variant: 'destructive',
       })
     },
@@ -111,6 +164,8 @@ export function useContas(tipo?: 'pagar' | 'receber') {
 
   const updateConta = useMutation({
     mutationFn: async ({ id, ...contaData }: Partial<Conta> & { id: string }) => {
+      console.log('Updating conta:', id, contaData)
+      
       const { data, error } = await supabase
         .from('contas')
         .update(contaData)
@@ -118,7 +173,10 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error updating conta:', error)
+        throw error
+      }
       return data
     },
     onSuccess: () => {
@@ -139,6 +197,8 @@ export function useContas(tipo?: 'pagar' | 'receber') {
 
   const marcarComoPago = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Marking conta as paid:', id)
+      
       const { data, error } = await supabase
         .from('contas')
         .update({
@@ -149,7 +209,10 @@ export function useContas(tipo?: 'pagar' | 'receber') {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error marking conta as paid:', error)
+        throw error
+      }
       return data
     },
     onSuccess: () => {
@@ -170,12 +233,17 @@ export function useContas(tipo?: 'pagar' | 'receber') {
 
   const deleteConta = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting conta:', id)
+      
       const { error } = await supabase
         .from('contas')
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error deleting conta:', error)
+        throw error
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contas'] })
