@@ -3,7 +3,34 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { fetchContas, createConta, updateConta, markContaAsPaid, deleteConta } from '@/services/contasApi'
 import { toast } from '@/hooks/use-toast'
-import type { ContaFormData } from '@/types/conta'
+
+export type ContaFormData = {
+  tipo: 'pagar' | 'receber'
+  descricao: string
+  valor: number
+  data_vencimento: string
+  categoria_id: string
+  observacoes?: string
+  recorrente: boolean
+  frequencia_recorrencia?: 'mensal' | 'trimestral' | 'anual'
+}
+
+export type Conta = {
+  id: string
+  user_id: string
+  descricao: string
+  valor: number
+  data_vencimento: string
+  data_pagamento: string | null
+  status: string
+  tipo: string
+  categoria_id: string
+  recorrente: boolean
+  frequencia_recorrencia: string | null
+  observacoes: string | null
+  created_at: string
+  updated_at: string
+}
 
 export function useContas(tipo?: 'pagar' | 'receber') {
   const { user } = useAuth()
@@ -115,10 +142,11 @@ export function useContas(tipo?: 'pagar' | 'receber') {
     contas: contasQuery.data || [],
     isLoading: contasQuery.isLoading,
     error: contasQuery.error,
-    createConta: createContaMutation.mutate,
-    updateConta: updateContaMutation.mutate,
-    markAsPaid: markAsPaidMutation.mutate,
-    deleteConta: deleteContaMutation.mutate,
+    createConta: createContaMutation.mutateAsync,
+    updateConta: updateContaMutation.mutateAsync,
+    markAsPaid: markAsPaidMutation.mutateAsync,
+    marcarComoPago: markAsPaidMutation,
+    deleteConta: deleteContaMutation.mutateAsync,
     isCreating: createContaMutation.isPending,
     isUpdating: updateContaMutation.isPending,
     isMarkingAsPaid: markAsPaidMutation.isPending,

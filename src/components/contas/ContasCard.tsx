@@ -1,4 +1,3 @@
-
 import { CalendarDays, CheckCircle, AlertCircle, Clock, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -60,7 +59,7 @@ export function ContasCard({ conta }: ContasCardProps) {
 
   const handleDelete = async () => {
     if (confirm('Tem certeza que deseja excluir esta conta?')) {
-      await deleteConta.mutateAsync(conta.id)
+      await deleteConta(conta.id)
     }
   }
 

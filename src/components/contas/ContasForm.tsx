@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,7 +33,7 @@ interface ContasFormProps {
 
 export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
   const { categories } = useCategories()
-  const { createConta } = useContas()
+  const { createConta, isCreating } = useContas()
   const { user, session } = useAuth()
   const [valor, setValor] = useState<number>(0)
 
@@ -82,7 +83,7 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
     }
 
     try {
-      await createConta.mutateAsync({
+      await createConta({
         ...data,
         valor,
       })
@@ -244,14 +245,14 @@ export function ContasForm({ tipo, onSuccess }: ContasFormProps) {
             type="submit" 
             className="w-full"
             disabled={
-              createConta.isPending || 
+              isCreating || 
               !user || 
               !session?.access_token ||
               valor <= 0 ||
               (session.expires_at && session.expires_at * 1000 < Date.now())
             }
           >
-            {createConta.isPending ? 'Criando...' : 'Criar Conta'}
+            {isCreating ? 'Criando...' : 'Criar Conta'}
           </Button>
 
           {(!user || !session?.access_token) && (
