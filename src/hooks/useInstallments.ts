@@ -31,7 +31,7 @@ export function useInstallments() {
       
       return {
         ...transactionData,
-        quando: format(installmentDate, 'yyyy-MM-dd'),
+        quando: format(installmentDate, 'yyyy-MM-dd'), // Formato consistente YYYY-MM-DD
         valor: installmentValue,
         is_installment: true,
         installment_group_id: installmentGroupId,
@@ -40,6 +40,8 @@ export function useInstallments() {
         detalhes: `${transactionData.detalhes ? transactionData.detalhes + ' - ' : ''}Parcela ${index + 1}/${totalInstallments}`
       }
     })
+
+    console.log('📝 Criando parcelas:', installmentTransactions)
 
     const { error } = await supabase
       .from('transacoes')

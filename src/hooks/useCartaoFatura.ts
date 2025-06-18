@@ -8,9 +8,7 @@ export interface CartaoResumo {
   cartao_id: string
   nome_cartao: string
   gastos_pendentes: number
-  limite_disponivel: number
   vencimento: number
-  limite_total: number
 }
 
 export function useCartaoFatura() {
@@ -24,10 +22,10 @@ export function useCartaoFatura() {
 
       console.log('🔍 Buscando resumos dos cartões...')
 
-      // Primeiro, buscar todos os cartões do usuário
+      // Buscar todos os cartões do usuário da tabela correta
       const { data: cartoes, error: cartoesError } = await supabase
-        .from('cartoes')
-        .select('id, nome, limite, vencimento')
+        .from('cartoes_credito')
+        .select('id, nome, data_vencimento')
         .eq('user_id', user.id)
 
       if (cartoesError) {
@@ -43,6 +41,9 @@ export function useCartaoFatura() {
       for (const cartao of cartoes) {
         console.log(`\n💳 Processando cartão: ${cartao.nome}`)
         
+        // Converter data_vencimento (string) para número
+        const diaVencimento = parseInt(cartao.data_vencimento, 10)
+        
         // Calcular a data limite do ciclo atual
         const hoje = new Date()
         const diaHoje = hoje.getDate()
@@ -51,12 +52,12 @@ export function useCartaoFatura() {
         
         let dataLimiteCiclo: Date
         
-        if (diaHoje <= cartao.vencimento) {
+        if (diaHoje <= diaVencimento) {
           // Se ainda não passou do vencimento, usar o vencimento do mês atual
-          dataLimiteCiclo = new Date(anoAtual, mesAtual, cartao.vencimento)
+          dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
         } else {
           // Se já passou do vencimento, usar o vencimento do próximo mês
-          dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, cartao.vencimento)
+          dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
         }
         
         console.log(`📅 Data limite do ciclo: ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`)
@@ -64,7 +65,7 @@ export function useCartaoFatura() {
         // Buscar transações pendentes do ciclo atual
         const { data: transacoes, error: transacoesError } = await supabase
           .from('transacoes')
-          .select('valor')
+          .select('valor, quando')
           .eq('cartao_id', cartao.id)
           .eq('tipo', 'despesa')
           .lte('quando', dataLimiteCiclo.toISOString())
@@ -75,22 +76,40 @@ export function useCartaoFatura() {
           continue
         }
 
-        console.log(`💰 Transações encontradas para ${cartao.nome}:`, transacoes?.length || 0)
-        console.log(`💰 Valores das transações:`, transacoes?.map(t => t.valor) || [])
+        // Filtrar transações por data para garantir que estão dentro do ciclo
+        const transacoesFiltradas = transacoes?.filter(transacao => {
+          if (!transacao.quando) return false
+          
+          // Normalizar a data da transação (pode vir como string simples ou ISO)
+          let dataTransacao: Date
+          if (transacao.quando.includes('T')) {
+            // Data ISO completa
+            dataTransacao = new Date(transacao.quando)
+          } else {
+            // Data simples (YYYY-MM-DD)
+            dataTransacao = new Date(transacao.quando + 'T00:00:00')
+          }
+          
+          // Verificar se a transação está dentro do ciclo
+          const dentoDoCiclo = dataTransacao <= dataLimiteCiclo
+          
+          console.log(`📝 Transação ${transacao.quando}: ${dentoDoCiclo ? '✅ Incluída' : '❌ Excluída'} (limite: ${dataLimiteCiclo.toLocaleDateString('pt-BR')})`)
+          
+          return dentoDoCiclo
+        }) || []
 
-        const gastosPendentes = transacoes?.reduce((acc, transacao) => acc + transacao.valor, 0) || 0
-        const limiteDisponivel = cartao.limite - gastosPendentes
+        console.log(`💰 Transações válidas para ${cartao.nome}:`, transacoesFiltradas?.length || 0)
+        console.log(`💰 Valores das transações:`, transacoesFiltradas?.map(t => t.valor) || [])
+
+        const gastosPendentes = transacoesFiltradas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
 
         console.log(`💳 ${cartao.nome}: Gastos pendentes = R$ ${gastosPendentes.toFixed(2)}`)
-        console.log(`💳 ${cartao.nome}: Limite disponível = R$ ${limiteDisponivel.toFixed(2)}`)
 
         resumos.push({
           cartao_id: cartao.id,
           nome_cartao: cartao.nome,
           gastos_pendentes: gastosPendentes,
-          limite_disponivel: limiteDisponivel,
-          vencimento: cartao.vencimento,
-          limite_total: cartao.limite
+          vencimento: diaVencimento
         })
       }
 
@@ -106,16 +125,19 @@ export function useCartaoFatura() {
 
       console.log('🔒 Fechando fatura do cartão:', cartaoId)
 
-      // Buscar dados do cartão
+      // Buscar dados do cartão da tabela correta
       const { data: cartao, error: cartaoError } = await supabase
-        .from('cartoes')
-        .select('nome, vencimento')
+        .from('cartoes_credito')
+        .select('nome, data_vencimento')
         .eq('id', cartaoId)
         .single()
 
       if (cartaoError) throw cartaoError
 
-      // Calcular a data limite do ciclo atual (mesmo cálculo do resumo)
+      // Converter data_vencimento para número
+      const diaVencimento = parseInt(cartao.data_vencimento, 10)
+
+      // Calcular a data limite do ciclo atual (mesma lógica do resumo)
       const hoje = new Date()
       const diaHoje = hoje.getDate()
       const mesAtual = hoje.getMonth()
@@ -123,15 +145,15 @@ export function useCartaoFatura() {
       
       let dataLimiteCiclo: Date
       
-      if (diaHoje <= cartao.vencimento) {
-        dataLimiteCiclo = new Date(anoAtual, mesAtual, cartao.vencimento)
+      if (diaHoje <= diaVencimento) {
+        dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
       } else {
-        dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, cartao.vencimento)
+        dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
       }
 
       console.log('📅 Data limite para fechamento:', dataLimiteCiclo.toLocaleDateString('pt-BR'))
 
-      // Buscar transações do ciclo atual
+      // Buscar transações do ciclo atual (mesma lógica do resumo)
       const { data: transacoes, error: transacoesError } = await supabase
         .from('transacoes')
         .select('*')
@@ -141,9 +163,23 @@ export function useCartaoFatura() {
 
       if (transacoesError) throw transacoesError
 
-      console.log('💰 Transações encontradas para fechamento:', transacoes?.length || 0)
+      // Filtrar transações por data
+      const transacoesFiltradas = transacoes?.filter(transacao => {
+        if (!transacao.quando) return false
+        
+        let dataTransacao: Date
+        if (transacao.quando.includes('T')) {
+          dataTransacao = new Date(transacao.quando)
+        } else {
+          dataTransacao = new Date(transacao.quando + 'T00:00:00')
+        }
+        
+        return dataTransacao <= dataLimiteCiclo
+      }) || []
 
-      const valorTotal = transacoes?.reduce((acc, transacao) => acc + transacao.valor, 0) || 0
+      console.log('💰 Transações encontradas para fechamento:', transacoesFiltradas?.length || 0)
+
+      const valorTotal = transacoesFiltradas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
 
       console.log('💰 Valor total da fatura:', valorTotal)
 
@@ -158,12 +194,12 @@ export function useCartaoFatura() {
       const { error: faturaError } = await supabase
         .from('transacoes')
         .insert({
-          user_id: user.id,
+          userId: user.id,
           tipo: 'despesa',
           valor: valorTotal,
-          descricao: `Fatura ${cartao.nome} - ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`,
-          quando: dataVencimento.toISOString(),
-          categoria_id: null, // Fatura não tem categoria específica
+          detalhes: `Fatura ${cartao.nome} - ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`,
+          quando: dataVencimento.toISOString().split('T')[0], // Formato YYYY-MM-DD
+          category_id: null, // Fatura não tem categoria específica
           cartao_id: null, // A fatura em si não é vinculada ao cartão
         })
 
