@@ -44,28 +44,20 @@ export function useCartaoFatura() {
         // Converter data_vencimento (string) para número
         const diaVencimento = parseInt(cartao.data_vencimento, 10)
         
-        // Calcular a data limite do ciclo atual
+        // Calcular a data limite do ciclo (sempre o próximo vencimento)
         const hoje = new Date()
-        const diaHoje = hoje.getDate()
         const mesAtual = hoje.getMonth()
         const anoAtual = hoje.getFullYear()
         
-        let dataLimiteCiclo: Date
-        
-        if (diaHoje <= diaVencimento) {
-          // Se ainda não passou do vencimento, usar o vencimento do mês atual
-          dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
-        } else {
-          // Se já passou do vencimento, usar o vencimento do próximo mês
-          dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
-        }
+        // Sempre usar o próximo vencimento (mês seguinte)
+        const dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
         
         console.log(`📅 Data limite do ciclo: ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`)
         
-        // Buscar transações pendentes do ciclo atual
-        const { data: transacoes, error: transacoesError } = await supabase
+        // Buscar todas as transações do cartão até a data limite
+        const { data: todasTransacoes, error: transacoesError } = await supabase
           .from('transacoes')
-          .select('valor, quando')
+          .select('*')
           .eq('cartao_id', cartao.id)
           .eq('tipo', 'despesa')
           .lte('quando', dataLimiteCiclo.toISOString())
@@ -76,32 +68,53 @@ export function useCartaoFatura() {
           continue
         }
 
-        // Filtrar transações por data para garantir que estão dentro do ciclo
-        const transacoesFiltradas = transacoes?.filter(transacao => {
+        console.log(`📝 Total de transações encontradas: ${todasTransacoes?.length || 0}`)
+
+        // Filtrar transações válidas (excluir originais que foram parceladas)
+        const transacoesValidas = todasTransacoes?.filter(transacao => {
           if (!transacao.quando) return false
           
-          // Normalizar a data da transação (pode vir como string simples ou ISO)
+          // Normalizar a data da transação
           let dataTransacao: Date
           if (transacao.quando.includes('T')) {
-            // Data ISO completa
             dataTransacao = new Date(transacao.quando)
           } else {
-            // Data simples (YYYY-MM-DD)
             dataTransacao = new Date(transacao.quando + 'T00:00:00')
           }
           
-          // Verificar se a transação está dentro do ciclo
+          // Verificar se está dentro do ciclo
           const dentoDoCiclo = dataTransacao <= dataLimiteCiclo
-          
-          console.log(`📝 Transação ${transacao.quando}: ${dentoDoCiclo ? '✅ Incluída' : '❌ Excluída'} (limite: ${dataLimiteCiclo.toLocaleDateString('pt-BR')})`)
-          
-          return dentoDoCiclo
+          if (!dentoDoCiclo) {
+            console.log(`📝 Transação ${transacao.quando}: ❌ Fora do ciclo`)
+            return false
+          }
+
+          // Se é uma parcela, incluir
+          if (transacao.is_installment) {
+            console.log(`📝 Parcela ${transacao.installment_number}/${transacao.total_installments}: ✅ Incluída`)
+            return true
+          }
+
+          // Se não é parcela, verificar se não foi parcelada
+          const foiParcelada = todasTransacoes?.some(t => 
+            t.installment_group_id && 
+            t.is_installment && 
+            Math.abs(new Date(t.quando).getTime() - dataTransacao.getTime()) < 24 * 60 * 60 * 1000 // mesmo dia
+          )
+
+          if (foiParcelada) {
+            console.log(`📝 Transação ${transacao.quando}: ❌ Foi parcelada (excluída)`)
+            return false
+          }
+
+          console.log(`📝 Transação ${transacao.quando}: ✅ Incluída`)
+          return true
         }) || []
 
-        console.log(`💰 Transações válidas para ${cartao.nome}:`, transacoesFiltradas?.length || 0)
-        console.log(`💰 Valores das transações:`, transacoesFiltradas?.map(t => t.valor) || [])
+        console.log(`💰 Transações válidas para ${cartao.nome}:`, transacoesValidas?.length || 0)
+        console.log(`💰 Valores das transações:`, transacoesValidas?.map(t => `R$ ${t.valor} (${t.is_installment ? 'parcela' : 'normal'})`) || [])
 
-        const gastosPendentes = transacoesFiltradas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
+        const gastosPendentes = transacoesValidas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
 
         console.log(`💳 ${cartao.nome}: Gastos pendentes = R$ ${gastosPendentes.toFixed(2)}`)
 
@@ -137,24 +150,17 @@ export function useCartaoFatura() {
       // Converter data_vencimento para número
       const diaVencimento = parseInt(cartao.data_vencimento, 10)
 
-      // Calcular a data limite do ciclo atual (mesma lógica do resumo)
+      // Calcular a data limite do ciclo (mesma lógica do resumo)
       const hoje = new Date()
-      const diaHoje = hoje.getDate()
       const mesAtual = hoje.getMonth()
       const anoAtual = hoje.getFullYear()
       
-      let dataLimiteCiclo: Date
-      
-      if (diaHoje <= diaVencimento) {
-        dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
-      } else {
-        dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
-      }
+      const dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
 
       console.log('📅 Data limite para fechamento:', dataLimiteCiclo.toLocaleDateString('pt-BR'))
 
-      // Buscar transações do ciclo atual (mesma lógica do resumo)
-      const { data: transacoes, error: transacoesError } = await supabase
+      // Buscar todas as transações do ciclo atual (mesma lógica do resumo)
+      const { data: todasTransacoes, error: transacoesError } = await supabase
         .from('transacoes')
         .select('*')
         .eq('cartao_id', cartaoId)
@@ -163,8 +169,8 @@ export function useCartaoFatura() {
 
       if (transacoesError) throw transacoesError
 
-      // Filtrar transações por data
-      const transacoesFiltradas = transacoes?.filter(transacao => {
+      // Aplicar o mesmo filtro do resumo
+      const transacoesValidas = todasTransacoes?.filter(transacao => {
         if (!transacao.quando) return false
         
         let dataTransacao: Date
@@ -174,12 +180,25 @@ export function useCartaoFatura() {
           dataTransacao = new Date(transacao.quando + 'T00:00:00')
         }
         
-        return dataTransacao <= dataLimiteCiclo
+        const dentoDoCiclo = dataTransacao <= dataLimiteCiclo
+        if (!dentoDoCiclo) return false
+
+        // Se é uma parcela, incluir
+        if (transacao.is_installment) return true
+
+        // Se não é parcela, verificar se não foi parcelada
+        const foiParcelada = todasTransacoes?.some(t => 
+          t.installment_group_id && 
+          t.is_installment && 
+          Math.abs(new Date(t.quando).getTime() - dataTransacao.getTime()) < 24 * 60 * 60 * 1000
+        )
+
+        return !foiParcelada
       }) || []
 
-      console.log('💰 Transações encontradas para fechamento:', transacoesFiltradas?.length || 0)
+      console.log('💰 Transações encontradas para fechamento:', transacoesValidas?.length || 0)
 
-      const valorTotal = transacoesFiltradas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
+      const valorTotal = transacoesValidas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
 
       console.log('💰 Valor total da fatura:', valorTotal)
 
