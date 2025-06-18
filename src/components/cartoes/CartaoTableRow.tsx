@@ -48,10 +48,10 @@ export function CartaoTableRow({
         {resumo ? (
           <div className="text-sm">
             <div className="font-medium">
-              R$ {resumo.total_gastos.toFixed(2)}
+              R$ {resumo.gastos_pendentes.toFixed(2)}
             </div>
             <div className="text-muted-foreground">
-              {resumo.quantidade_transacoes} transação(ões)
+              Gastos pendentes
             </div>
           </div>
         ) : (
@@ -68,7 +68,7 @@ export function CartaoTableRow({
             <Pencil className="h-4 w-4" />
           </Button>
           
-          {resumo && resumo.total_gastos > 0 && (
+          {resumo && resumo.gastos_pendentes > 0 && (
             <Button
               variant="outline"
               size="sm"

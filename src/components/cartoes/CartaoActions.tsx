@@ -32,7 +32,7 @@ export function useCartaoActions({ onRefresh }: CartaoActionsProps) {
   
   const { user } = useAuth()
   const { toast } = useToast()
-  const { resumosCartao, fecharFatura, isClosingFatura } = useCartaoFatura()
+  const { resumos, fecharFatura, isClosingFatura } = useCartaoFatura()
 
   const handleDelete = async (id: string) => {
     try {
@@ -68,7 +68,7 @@ export function useCartaoActions({ onRefresh }: CartaoActionsProps) {
   }
 
   const getCartaoResumo = (cartaoId: string) => {
-    return resumosCartao.find(r => r.cartao_id === cartaoId)
+    return resumos.find(r => r.cartao_id === cartaoId)
   }
 
   const handleFecharFatura = (cartao: Cartao) => {
@@ -82,10 +82,7 @@ export function useCartaoActions({ onRefresh }: CartaoActionsProps) {
   const confirmFecharFatura = () => {
     if (!faturaModal.cartao) return
     
-    fecharFatura({
-      cartaoId: faturaModal.cartao.id,
-      nomeCartao: faturaModal.cartao.nome
-    })
+    fecharFatura(faturaModal.cartao.id)
     
     setFaturaModal({ isOpen: false, cartao: null })
   }
@@ -97,8 +94,8 @@ export function useCartaoActions({ onRefresh }: CartaoActionsProps) {
         onClose={() => setFaturaModal({ isOpen: false, cartao: null })}
         onConfirm={confirmFecharFatura}
         cartaoNome={faturaModal.cartao.nome}
-        valorTotal={getCartaoResumo(faturaModal.cartao.id)?.total_gastos || 0}
-        quantidadeTransacoes={getCartaoResumo(faturaModal.cartao.id)?.quantidade_transacoes || 0}
+        valorTotal={getCartaoResumo(faturaModal.cartao.id)?.gastos_pendentes || 0}
+        quantidadeTransacoes={0}
         isLoading={isClosingFatura}
       />
     )
