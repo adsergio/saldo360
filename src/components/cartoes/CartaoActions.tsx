@@ -95,7 +95,7 @@ export function useCartaoActions({ onRefresh }: CartaoActionsProps) {
         onConfirm={confirmFecharFatura}
         cartaoNome={faturaModal.cartao.nome}
         valorTotal={getCartaoResumo(faturaModal.cartao.id)?.gastos_pendentes || 0}
-        quantidadeTransacoes={0}
+        quantidadeTransacoes={getCartaoResumo(faturaModal.cartao.id)?.quantidade_transacoes || 0}
         isLoading={isClosingFatura}
       />
     )

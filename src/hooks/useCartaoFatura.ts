@@ -8,6 +8,7 @@ export interface CartaoResumo {
   cartao_id: string
   nome_cartao: string
   gastos_pendentes: number
+  quantidade_transacoes: number
   vencimento: number
 }
 
@@ -44,13 +45,13 @@ export function useCartaoFatura() {
         // Converter data_vencimento (string) para número
         const diaVencimento = parseInt(cartao.data_vencimento, 10)
         
-        // Calcular a data limite do ciclo (sempre o próximo vencimento)
+        // Calcular a data limite do ciclo (sempre o mês atual)
         const hoje = new Date()
         const mesAtual = hoje.getMonth()
         const anoAtual = hoje.getFullYear()
         
-        // Sempre usar o próximo vencimento (mês seguinte)
-        const dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
+        // Usar o mês atual para o vencimento
+        const dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
         
         console.log(`📅 Data limite do ciclo: ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`)
         
@@ -115,13 +116,15 @@ export function useCartaoFatura() {
         console.log(`💰 Valores das transações:`, transacoesValidas?.map(t => `R$ ${t.valor} (${t.is_installment ? 'parcela' : 'normal'})`) || [])
 
         const gastosPendentes = transacoesValidas?.reduce((acc, transacao) => acc + (transacao.valor || 0), 0) || 0
+        const quantidadeTransacoes = transacoesValidas?.length || 0
 
-        console.log(`💳 ${cartao.nome}: Gastos pendentes = R$ ${gastosPendentes.toFixed(2)}`)
+        console.log(`💳 ${cartao.nome}: Gastos pendentes = R$ ${gastosPendentes.toFixed(2)}, Transações = ${quantidadeTransacoes}`)
 
         resumos.push({
           cartao_id: cartao.id,
           nome_cartao: cartao.nome,
           gastos_pendentes: gastosPendentes,
+          quantidade_transacoes: quantidadeTransacoes,
           vencimento: diaVencimento
         })
       }
@@ -150,12 +153,12 @@ export function useCartaoFatura() {
       // Converter data_vencimento para número
       const diaVencimento = parseInt(cartao.data_vencimento, 10)
 
-      // Calcular a data limite do ciclo (mesma lógica do resumo)
+      // Calcular a data limite do ciclo (mesma lógica do resumo - mês atual)
       const hoje = new Date()
       const mesAtual = hoje.getMonth()
       const anoAtual = hoje.getFullYear()
       
-      const dataLimiteCiclo = new Date(anoAtual, mesAtual + 1, diaVencimento, 23, 59, 59)
+      const dataLimiteCiclo = new Date(anoAtual, mesAtual, diaVencimento, 23, 59, 59)
 
       console.log('📅 Data limite para fechamento:', dataLimiteCiclo.toLocaleDateString('pt-BR'))
 
