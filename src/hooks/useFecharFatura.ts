@@ -9,11 +9,56 @@ export function useFecharFatura() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
+  const buscarOuCriarCategoriaFatura = async (userId: string): Promise<string> => {
+    console.log('🔍 Buscando categoria "Fatura de Cartão"...')
+    
+    // Primeiro, tentar buscar a categoria existente
+    const { data: categoriaExistente, error: buscarError } = await supabase
+      .from('categorias')
+      .select('id')
+      .eq('userid', userId)
+      .eq('nome', 'Fatura de Cartão')
+      .maybeSingle()
+
+    if (buscarError) {
+      console.error('❌ Erro ao buscar categoria:', buscarError)
+      throw buscarError
+    }
+
+    if (categoriaExistente) {
+      console.log('✅ Categoria "Fatura de Cartão" encontrada:', categoriaExistente.id)
+      return categoriaExistente.id
+    }
+
+    // Se não existir, criar a categoria
+    console.log('📝 Criando categoria "Fatura de Cartão"...')
+    const { data: novaCategoria, error: criarError } = await supabase
+      .from('categorias')
+      .insert({
+        nome: 'Fatura de Cartão',
+        tags: 'fatura,cartao,credito',
+        userid: userId
+      })
+      .select('id')
+      .single()
+
+    if (criarError) {
+      console.error('❌ Erro ao criar categoria:', criarError)
+      throw criarError
+    }
+
+    console.log('✅ Categoria "Fatura de Cartão" criada:', novaCategoria.id)
+    return novaCategoria.id
+  }
+
   const fecharFaturaMutation = useMutation({
     mutationFn: async (cartaoId: string) => {
       if (!user?.id) throw new Error('Usuário não autenticado')
 
       console.log('🔒 Fechando fatura do cartão:', cartaoId)
+
+      // Buscar ou criar categoria para faturas
+      const categoriaFaturaId = await buscarOuCriarCategoriaFatura(user.id)
 
       // Buscar dados do cartão da tabela correta
       const { data: cartao, error: cartaoError } = await supabase
@@ -67,7 +112,7 @@ export function useFecharFatura() {
           valor: valorTotal,
           detalhes: `Fatura ${cartao.nome} - ${dataLimiteCiclo.toLocaleDateString('pt-BR')}`,
           quando: dataVencimento.toISOString().split('T')[0], // Formato YYYY-MM-DD
-          category_id: null, // Fatura não tem categoria específica
+          category_id: categoriaFaturaId, // Usar a categoria específica para faturas
           cartao_id: null, // A fatura em si não é vinculada ao cartão
         })
 
@@ -82,6 +127,7 @@ export function useFecharFatura() {
       })
       queryClient.invalidateQueries({ queryKey: ['cartao-resumos'] })
       queryClient.invalidateQueries({ queryKey: ['transacoes'] })
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (error: any) => {
       toast({
